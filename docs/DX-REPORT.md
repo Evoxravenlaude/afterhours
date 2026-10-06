@@ -29,3 +29,10 @@ _Suggestion:_ one sentence per field: source, precision, update timing, and how 
 **F5. Corporate-action reason codes are a good idea, hidden in a skill page.**
 `cash_dividend`, `stock_split`, `merger` and others appear as pause reasons in the asset market status API. That is exactly what an integrator needs to avoid trading into a rebase, and it's only documented inside the skill.
 _Suggestion:_ promote these to the main API reference with examples.
+
+**F6. Agentic Wallet flags are only in a nested reference file.**
+The skill's SKILL.md tells agents to "always read reference files first", but the market-order syntax (`--fromTokenQty --fromToken --toToken --binanceChainId`) lives only in `references/market-order.md`, and GitHub's tree view of the skill folder is blocked to automated fetchers by robots.txt, so an agent can't list the reference files to find it. We guessed the flags first and got them wrong.
+_Suggestion:_ put one complete quote example and one swap example in SKILL.md itself, and link each reference file by full raw URL.
+
+**F7. Quotes are sized in the from-token, never in USD.**
+`--fromTokenQty` is a token quantity. For a sell of a tokenized stock, the integrator must convert a dollar amount into raw token units, which means knowing the multiplier. A `--fromUsd` option, or a documented example with a tokenized stock, would remove a common sizing mistake.

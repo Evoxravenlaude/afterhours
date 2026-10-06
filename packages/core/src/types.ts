@@ -58,3 +58,6 @@ export interface Dislocation {
   side: "buy" | "sell";
   at: number;
 }
+
+export const ISSUER_LABEL: Record<Issuer, string> = { bstocks: "bStocks", ondo: "Ondo", xstocks: "xStocks" };
+export const issuerLabel = (i: string) => (ISSUER_LABEL as Record<string, string>)[i] ?? i;

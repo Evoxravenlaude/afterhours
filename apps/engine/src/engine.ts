@@ -1,0 +1,94 @@
+import {
+  fairValue, findDislocations, applyGuards, isOpen, lastClose, nextOpen, hoursClosed, score,
+  type Dislocation, type FairValue,
+} from "@afterhours/core";
+import type { Store, AlertRow } from "./store.js";
+import type { Snapshot } from "./collector.js";
+import type { Config } from "./config.js";
+
+export interface Notifier {
+  alert(row: AlertRow, fv: FairValue): Promise<void>;
+  morning(periodStart: number): Promise<void>;
+}
+
+export interface TickResult { fairValues: FairValue[]; alerts: AlertRow[]; suppressed: number; settled: string[] }
+
+/**
+ * One pass of the loop. Pure with respect to the outside world except through Store and Notifier,
+ * so it can be driven by live snapshots or by tests.
+ */
+export class Engine {
+  constructor(private store: Store, private cfg: Config, private notify?: Notifier) {}
+
+  async tick(snap: Snapshot): Promise<TickResult> {
+    const { now } = snap;
+    const open = isOpen(now);
+    const lcAt = lastClose(now);
+    const noAt = nextOpen(now);
+    const res: TickResult = { fairValues: [], alerts: [], suppressed: 0, settled: [] };
+
+    for (const [ticker, s] of snap.tickers) {
+      // While the exchange is open, keep the latest spot so the close is captured when it shuts.
+      if (open && s.oraclePx) { this.store.set(`spot:${ticker}`, String(s.oraclePx)); continue; }
+      const closeKey = `close:${ticker}:${lcAt}`;
+      let close = Number(this.store.get(closeKey));
+      if (!close) {
+        const spot = Number(this.store.get(`spot:${ticker}`));
+        close = spot || s.stockPrice || 0;
+        if (close) this.store.set(closeKey, String(close));
+      }
+      if (!close || !s.quotes.length) continue;
+
+      const fv = fairValue({ ticker, now, lastClose: close, lastCloseAt: lcAt, hoursClosed: hoursClosed(now), quotes: s.quotes, external: s.external }, this.cfg.model);
+      const tokenOnly = fairValue({ ticker, now, lastClose: close, lastCloseAt: lcAt, hoursClosed: hoursClosed(now), quotes: s.quotes }, this.cfg.model);
+      this.store.saveFairValue(fv);
+      res.fairValues.push(fv);
+
+      // Lock the forecast in the minutes before the open.
+      if (noAt - now <= this.cfg.forecastLeadMin * 60_000) {
+        this.store.upsertForecast({ ticker, periodStart: lcAt, openAt: noAt, lastClose: close, fairValue: fv.value, tokenOnly: tokenOnly.value, external: s.external?.price });
+      }
+
+      const { alerts, suppressed } = applyGuards(findDislocations(fv, s.quotes, this.cfg.costs), s.guards, now);
+      for (const d of suppressed) { this.store.insertAlert(d, lcAt, d.reason); res.suppressed++; }
+      for (const d of alerts) {
+        if (!this.shouldAlert(d, now)) continue;
+        const id = this.store.insertAlert(d, lcAt);
+        const row = { ...d, id, periodStart: lcAt } as AlertRow;
+        res.alerts.push(row);
+        await this.notify?.alert(row, fv).catch(() => {});
+      }
+    }
+
+    // After the open: read the opening print and settle forecasts and alerts for that period.
+    if (open) res.settled = await this.settle(snap);
+    return res;
+  }
+
+  private shouldAlert(d: Dislocation, now: number): boolean {
+    const prev = this.store.lastAlertFor(d.contract, d.side);
+    if (!prev) return true;
+    return now - prev.at >= this.cfg.realertMs || d.netEdgePct >= prev.netEdgePct * 1.5;
+  }
+
+  private async settle(snap: Snapshot): Promise<string[]> {
+    const settled: string[] = [];
+    const due = this.store.unsettledForecasts(snap.now - this.cfg.openReadDelayMin * 60_000);
+    const periods = new Set<number>();
+    for (const f of due) {
+      const s = snap.tickers.get(f.ticker);
+      if (!s?.oraclePx) continue;
+      this.store.settleForecast(f.ticker, f.openAt, s.oraclePx);
+      for (const a of this.store.alertsForPeriod(f.periodStart).filter((a) => a.ticker === f.ticker && !a.suppressed && a.worthPct == null)) {
+        const worth = a.side === "buy" ? s.oraclePx / a.sharePrice - 1 : a.sharePrice / s.oraclePx - 1;
+        this.store.settleAlert(a.id, s.oraclePx, worth);
+      }
+      periods.add(f.periodStart);
+      settled.push(f.ticker);
+    }
+    for (const p of periods) await this.notify?.morning(p).catch(() => {});
+    return settled;
+  }
+
+  scorecard() { return score(this.store.forecasts()); }
+}
