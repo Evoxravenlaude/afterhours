@@ -1,0 +1,142 @@
+import { describe, it, expect } from "vitest";
+import {
+  isOpen, lastClose, nextOpen, hoursClosed, sessionFor, isTradingDay,
+  sharePrice, tokenConsensus, fairValue, findDislocations, applyGuards, score, calibrateExternalWeight,
+  type TokenQuote,
+} from "../src/index.js";
+
+const T = (iso: string) => Date.parse(iso);
+
+describe("calendar", () => {
+  it("regular session in EDT is 13:30–20:00 UTC", () => {
+    const s = sessionFor("2026-10-06")!;
+    expect(new Date(s.open).toISOString()).toBe("2026-10-06T13:30:00.000Z");
+    expect(new Date(s.close).toISOString()).toBe("2026-10-06T20:00:00.000Z");
+  });
+  it("regular session in EST is 14:30–21:00 UTC", () => {
+    const s = sessionFor("2026-12-07")!;
+    expect(new Date(s.open).toISOString()).toBe("2026-12-07T14:30:00.000Z");
+  });
+  it("early close on the day after Thanksgiving", () => {
+    expect(new Date(sessionFor("2026-11-27")!.close).toISOString()).toBe("2026-11-27T18:00:00.000Z");
+  });
+  it("weekends and holidays are closed", () => {
+    expect(isTradingDay("2026-10-10")).toBe(false);
+    expect(isTradingDay("2026-11-26")).toBe(false);
+    expect(isTradingDay("2026-10-12")).toBe(true); // Columbus Day: NYSE open
+  });
+  it("open/closed and the weekend gap", () => {
+    expect(isOpen(T("2026-10-06T15:00:00Z"))).toBe(true);
+    expect(isOpen(T("2026-10-10T15:00:00Z"))).toBe(false);
+    const sat = T("2026-10-10T12:00:00Z");
+    expect(new Date(lastClose(sat)).toISOString()).toBe("2026-10-09T20:00:00.000Z");
+    expect(new Date(nextOpen(sat)).toISOString()).toBe("2026-10-12T13:30:00.000Z");
+    expect(hoursClosed(sat)).toBeCloseTo(16, 5);
+  });
+  it("skips a holiday when finding the next open", () => {
+    expect(new Date(nextOpen(T("2026-11-25T22:00:00Z"))).toISOString()).toBe("2026-11-27T14:30:00.000Z");
+  });
+});
+
+const q = (issuer: TokenQuote["issuer"], tokenPrice: number, multiplier = 1, liquidityUsd = 100_000, observedAt = T("2026-10-10T12:00:00Z")): TokenQuote =>
+  ({ issuer, symbol: `${issuer}-NVDA`, ticker: "NVDA", contract: "0x0000000000000000000000000000000000000001", tokenPrice, multiplier, liquidityUsd, observedAt });
+
+describe("model", () => {
+  it("share price divides by the multiplier", () => {
+    expect(sharePrice({ tokenPrice: 202, multiplier: 1.01 })).toBeCloseTo(200, 6);
+  });
+  it("consensus drops a broken quote", () => {
+    const c = tokenConsensus([q("bstocks", 200), q("ondo", 201), q("xstocks", 300)])!;
+    expect(c.used).toHaveLength(2);
+    expect(c.value).toBeGreaterThanOrEqual(200);
+    expect(c.value).toBeLessThanOrEqual(201);
+  });
+  it("blends the external signal and tokens in log space", () => {
+    const now = T("2026-10-10T12:00:00Z");
+    const fv = fairValue({
+      ticker: "NVDA", now, lastClose: 200, lastCloseAt: T("2026-10-09T20:00:00Z"), hoursClosed: 16,
+      quotes: [q("bstocks", 204), q("ondo", 204)],
+      external: { source: "hyperliquid", ticker: "NVDA", price: 210, observedAt: now },
+    });
+    const expected = Math.exp(Math.log(200) + 0.7 * Math.log(210 / 200) + 0.3 * Math.log(204 / 200));
+    expect(fv.value).toBeCloseTo(expected, 6);
+    expect(fv.low).toBeLessThan(fv.value);
+    expect(fv.high).toBeGreaterThan(fv.value);
+  });
+  it("ignores a stale external signal", () => {
+    const now = T("2026-10-10T12:00:00Z");
+    const fv = fairValue({
+      ticker: "NVDA", now, lastClose: 200, lastCloseAt: 0, hoursClosed: 16,
+      quotes: [q("bstocks", 204)],
+      external: { source: "hyperliquid", ticker: "NVDA", price: 250, observedAt: now - 3_600_000 },
+    });
+    expect(fv.value).toBeCloseTo(204, 6);
+    expect(fv.inputs.weights.external).toBe(0);
+  });
+  it("falls back to last close with a widening band", () => {
+    const fv8 = fairValue({ ticker: "NVDA", now: 0, lastClose: 200, lastCloseAt: 0, hoursClosed: 8, quotes: [] });
+    const fv60 = fairValue({ ticker: "NVDA", now: 0, lastClose: 200, lastCloseAt: 0, hoursClosed: 60, quotes: [] });
+    expect(fv8.value).toBe(200);
+    expect(fv60.high - fv60.low).toBeGreaterThan(fv8.high - fv8.low);
+  });
+  it("flags only tokens outside the band by more than costs", () => {
+    const now = T("2026-10-10T12:00:00Z");
+    const quotes = [q("bstocks", 200), q("ondo", 200.2), q("xstocks", 196)];
+    const fv = fairValue({
+      ticker: "NVDA", now, lastClose: 200, lastCloseAt: 0, hoursClosed: 16, quotes,
+      external: { source: "hyperliquid", ticker: "NVDA", price: 200.1, observedAt: now },
+    });
+    const ds = findDislocations(fv, quotes);
+    expect(ds).toHaveLength(1);
+    expect(ds[0].issuer).toBe("xstocks");
+    expect(ds[0].side).toBe("buy");
+    expect(ds[0].netEdgePct).toBeGreaterThan(0);
+  });
+  it("respects multipliers: a token that rebased is not cheap", () => {
+    const now = T("2026-10-10T12:00:00Z");
+    // bStocks token reinvested a dividend: 1 raw token = 1.005 shares, so it trades 0.5% higher per token.
+    const quotes = [q("bstocks", 201, 1.005), q("ondo", 200)];
+    const fv = fairValue({ ticker: "NVDA", now, lastClose: 200, lastCloseAt: 0, hoursClosed: 16, quotes,
+      external: { source: "hyperliquid", ticker: "NVDA", price: 200, observedAt: now } });
+    expect(findDislocations(fv, quotes)).toHaveLength(0);
+  });
+});
+
+describe("guards", () => {
+  const d = { ticker: "NVDA", issuer: "xstocks" as const, symbol: "x", contract: "0x0000000000000000000000000000000000000001" as const,
+    sharePrice: 196, fairValue: 200, edgePct: -0.02, netEdgePct: 0.0145, side: "buy" as const, at: 0 };
+  it("silences a ticker around a scheduled multiplier change", () => {
+    const now = T("2026-10-10T12:00:00Z");
+    const r = applyGuards([d], [{ ticker: "NVDA", pendingMultiplier: { multiplier: 1.004, effectiveAt: now + 3_600_000, issuer: "bstocks" } }], now);
+    expect(r.alerts).toHaveLength(0);
+    expect(r.suppressed[0].reason).toMatch(/multiplier change/);
+  });
+  it("silences on a corporate-action pause", () => {
+    const r = applyGuards([d], [{ ticker: "NVDA", assetStatus: { issuer: "ondo", openState: "ASSET_PAUSED", reasonCode: "stock_split" } }], 0);
+    expect(r.suppressed[0].reason).toMatch(/stock_split/);
+  });
+  it("lets a normal weekend dislocation through", () => {
+    const r = applyGuards([d], [{ ticker: "NVDA", assetStatus: { issuer: "xstocks", openState: "MARKET_CLOSED" } }], 0);
+    expect(r.alerts).toHaveLength(1);
+  });
+});
+
+describe("scorecard", () => {
+  it("measures improvement over the last-close forecast", () => {
+    const s = score([
+      { ticker: "NVDA", periodStart: 0, openAt: 1, lastClose: 200, fairValue: 205, actualOpen: 206 },
+      { ticker: "TSLA", periodStart: 0, openAt: 1, lastClose: 300, fairValue: 294, actualOpen: 293 },
+    ]);
+    expect(s.n).toBe(2);
+    expect(s.maeBps).toBeLessThan(s.naiveMaeBps);
+    expect(s.improvementPct).toBeGreaterThan(50);
+    expect(s.directionHitRate).toBe(1);
+  });
+  it("calibrates toward the signal that predicted opens", () => {
+    const rows = [
+      { lastClose: 100, external: 103, tokens: 101, actualOpen: 103 },
+      { lastClose: 100, external: 97, tokens: 99, actualOpen: 97.2 },
+    ];
+    expect(calibrateExternalWeight(rows).weight).toBeGreaterThanOrEqual(0.9);
+  });
+});

@@ -1,0 +1,26 @@
+{
+  "name": "afterhours",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Fair value for tokenized stocks while the exchange is closed. Alerts, a scored forecast of the open, and an Agentic Wallet skill for BNB Chain.",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "tsc -b packages/core packages/sources apps/engine",
+    "test": "vitest run",
+    "gate": "tsx scripts/gate.ts",
+    "engine": "tsx apps/engine/src/index.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
+}
