@@ -4,3 +4,4 @@ export * from "./model.js";
 export * from "./guard.js";
 export * from "./scorer.js";
 export * from "./audit.js";
+export * from "./backtest.js";

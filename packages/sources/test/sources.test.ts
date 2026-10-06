@@ -92,3 +92,13 @@ describe("BEP-677 fixed point", () => {
     expect(fromE18(10n ** 18n)).toBe(1);
   });
 });
+
+import { parseStooqCsv } from "../src/index.js";
+describe("Stooq daily bars", () => {
+  it("parses the CSV and skips junk rows", () => {
+    const bars = parseStooqCsv("Date,Open,High,Low,Close,Volume\n2026-10-02,186.5,190,185,189.2,1000\n2026-10-05,191.1,193,190,192.4,1200\nNo data\n");
+    expect(bars).toHaveLength(2);
+    expect(bars[1]).toMatchObject({ date: "2026-10-05", open: 191.1, close: 192.4 });
+  });
+  it("returns nothing for an error page", () => { expect(parseStooqCsv("Exceeded the daily hits limit")).toEqual([]); });
+});

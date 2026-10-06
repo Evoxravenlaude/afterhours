@@ -113,8 +113,8 @@ export class BinanceRwa {
     return { openState: String(d?.openState ?? "UNKNOWN"), marketStatus: d?.marketStatus, reasonCode: d?.reasonCode ?? undefined, reasonMsg: d?.reasonMsg ?? undefined, nextOpenTime: num(d?.nextOpenTime), nextCloseTime: num(d?.nextCloseTime) };
   }
 
-  async klines(contract: string, interval: "1m" | "5m" | "15m" | "1h" | "4h" | "12h" | "1d" = "15m", limit = 300, chainId = BSC_CHAIN_ID): Promise<Kline[]> {
-    const d: any = await this.call(PATHS.kline, { chainId, contractAddress: contract, interval, limit });
+  async klines(contract: string, interval: "1m" | "5m" | "15m" | "1h" | "4h" | "12h" | "1d" = "15m", limit = 300, window?: { startTime: number; endTime: number }, chainId = BSC_CHAIN_ID): Promise<Kline[]> {
+    const d: any = await this.call(PATHS.kline, { chainId, contractAddress: contract, interval, limit, startTime: window?.startTime, endTime: window?.endTime });
     const rows: any[] = d?.klineInfos ?? [];
     return rows.map((k) => ({ openTime: Number(k[0]), open: Number(k[1]), high: Number(k[2]), low: Number(k[3]), close: Number(k[4]), closeTime: Number(k[6]) }))
       .filter((k) => Number.isFinite(k.close));

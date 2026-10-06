@@ -27,6 +27,12 @@ export class HyperliquidStocks {
     });
   }
 
+  /** Historical candles for one perp (coin name as listed, e.g. "xyz:NVDA"). Times in ms. */
+  async candles(coin: string, interval: "1m" | "5m" | "15m" | "1h" | "4h" | "1d", startTime: number, endTime: number): Promise<{ t: number; o: number; h: number; l: number; c: number; v: number }[]> {
+    const res = await getJson<any[]>(this.opts.url ?? HL_INFO, { ...this.opts, method: "POST", body: { type: "candleSnapshot", req: { coin, interval, startTime, endTime } } });
+    return (res ?? []).map((k) => ({ t: Number(k.t), o: Number(k.o), h: Number(k.h), l: Number(k.l), c: Number(k.c), v: Number(k.v) })).filter((k) => Number.isFinite(k.c));
+  }
+
   /** One signal per ticker. Mid price preferred (what trades), mark price as fallback. Thin markets are dropped. */
   async signals(minDayVolumeUsd = 250_000): Promise<Map<string, ExternalSignal>> {
     const out = new Map<string, ExternalSignal>();

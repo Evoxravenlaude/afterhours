@@ -1,0 +1,14 @@
+{
+  "name": "@afterhours/engine",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@afterhours/core": "0.1.0",
+    "@afterhours/sources": "0.1.0",
+    "hono": "^4",
+    "@hono/node-server": "^1",
+    "grammy": "^1",
+    "@resvg/resvg-js": "^2"
+  }
+}
