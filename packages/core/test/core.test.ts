@@ -140,3 +140,18 @@ describe("scorecard", () => {
     expect(calibrateExternalWeight(rows).weight).toBeGreaterThanOrEqual(0.9);
   });
 });
+
+import { shouldRealert } from "../src/index.js";
+describe("re-alert rule", () => {
+  const H = 3_600_000;
+  it("stays quiet while an edge creeps up within one episode", () => {
+    expect(shouldRealert({ at: 0, netEdgePct: 0.01 }, { at: 1 * H, netEdgePct: 0.018 })).toBe(false);
+    expect(shouldRealert({ at: 0, netEdgePct: 0.01 }, { at: 20 * H, netEdgePct: 0.012 })).toBe(false);
+  });
+  it("speaks again when the edge doubles after two hours", () => {
+    expect(shouldRealert({ at: 0, netEdgePct: 0.01 }, { at: 2 * H, netEdgePct: 0.02 })).toBe(true);
+  });
+  it("starts a new episode after the token returned inside the band", () => {
+    expect(shouldRealert({ at: 0, netEdgePct: 0.01 }, { at: 3 * H, netEdgePct: 0.01 }, 2 * H)).toBe(true);
+  });
+});

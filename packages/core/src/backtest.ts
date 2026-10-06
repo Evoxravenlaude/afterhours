@@ -1,6 +1,7 @@
 import type { Issuer, TokenQuote, ExternalSignal, Dislocation } from "./types.js";
 import { fairValue, findDislocations, DEFAULT_MODEL, DEFAULT_COSTS, type ModelConfig, type CostModel } from "./model.js";
 import type { Forecast } from "./scorer.js";
+import { shouldRealert } from "./guard.js";
 
 export interface Candle { t: number; c: number; v?: number }
 
@@ -54,17 +55,19 @@ export function backtestPeriod(p: PeriodInput, opts: { stepMs?: number; leadMs?:
   const fv = fairValue({ ...base, quotes: s.quotes, external: s.external }, { ...model, maxSignalAgeMs: maxCandleAgeMs });
   const tok = fairValue({ ...base, quotes: s.quotes }, { ...model, maxSignalAgeMs: maxCandleAgeMs });
 
-  const seen = new Map<string, number>();
+  const seen = new Map<string, { at: number; netEdgePct: number }>();
+  const inBandAt = new Map<string, number>();
   const alerts: BacktestAlert[] = [];
   for (let t = p.lastCloseAt + stepMs; t < p.openAt; t += stepMs) {
     const snap = snapshot(p, t, maxCandleAgeMs);
     if (!snap.quotes.length) continue;
     const f = fairValue({ ticker: p.ticker, now: t, lastClose: p.lastClose, lastCloseAt: p.lastCloseAt, hoursClosed: (t - p.lastCloseAt) / 3_600_000, quotes: snap.quotes, external: snap.external }, { ...model, maxSignalAgeMs: maxCandleAgeMs });
-    for (const d of findDislocations(f, snap.quotes, costs)) {
+    const out = findDislocations(f, snap.quotes, costs);
+    for (const q of snap.quotes) if (!out.some((d) => d.contract === q.contract)) inBandAt.set(q.contract, t);
+    for (const d of out) {
       const key = `${d.contract}:${d.side}`;
-      const prev = seen.get(key);
-      if (prev !== undefined && d.netEdgePct < prev * 1.5) continue;
-      seen.set(key, d.netEdgePct);
+      if (!shouldRealert(seen.get(key), d, inBandAt.get(d.contract) ?? 0)) continue;
+      seen.set(key, { at: d.at, netEdgePct: d.netEdgePct });
       const worthPct = d.side === "buy" ? p.actualOpen / d.sharePrice - 1 : d.sharePrice / p.actualOpen - 1;
       alerts.push({ ...d, worthPct });
     }

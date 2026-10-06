@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Afterhours</title>
+<meta name="description" content="Fair value for tokenized stocks on BNB Chain while Wall Street is closed, scored against every open.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#14110f; --panel:#1c1815; --line:#2a2420; --ink:#f4efe6; --muted:#a49e93; --dim:#7d776d; --amber:#e8b04b; --up:#7fbf8f; --down:#e07a6a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 80px; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  h1 { font-size: 34px; font-weight: 800; margin: 0; letter-spacing: -0.02em; }
+  .moon { width: 34px; height: 34px; border-radius: 50%; background: var(--amber); box-shadow: inset -10px -6px 0 0 var(--bg); display:inline-block; vertical-align: -6px; margin-right: 10px; }
+  .status { font: 600 13px/1 "JetBrains Mono", monospace; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); }
+  .status b { color: var(--amber); }
+  .lede { color: var(--muted); max-width: 680px; margin: 14px 0 28px; }
+  .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .stat .k { color: var(--dim); font-size: 13px; }
+  .stat .v { font-size: 28px; font-weight: 800; margin-top: 4px; }
+  .stat .v.amber { color: var(--amber); }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 36px 0 12px; font-weight: 600; }
+  .band { display:grid; grid-template-columns: 80px 1fr 110px; align-items:center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .band .t { font-weight: 800; }
+  .band .px { font: 600 14px "JetBrains Mono", monospace; text-align: right; }
+  .track { position: relative; height: 26px; }
+  .track .rng { position:absolute; top: 10px; height: 6px; background: #3a3129; border-radius: 3px; }
+  .track .fv { position:absolute; top: 4px; width: 2px; height: 18px; background: var(--amber); }
+  .track .dot { position:absolute; top: 8px; width: 10px; height: 10px; border-radius: 50%; transform: translateX(-5px); background: var(--muted); }
+  .track .dot.out { background: var(--down); }
+  .track .dot.ext { background: transparent; border: 2px solid var(--amber); }
+  .legend { color: var(--dim); font-size: 13px; margin-top: 8px; }
+  .legend span { margin-right: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+  th { color: var(--dim); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  td.num { font-family: "JetBrains Mono", monospace; text-align: right; }
+  .pos { color: var(--up); } .neg { color: var(--down); } .muted { color: var(--dim); }
+  .empty { color: var(--dim); padding: 18px 0; }
+  footer { margin-top: 48px; color: var(--dim); font-size: 13px; }
+  a { color: var(--amber); }
+  .scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1><span class="moon"></span>Afterhours</h1>
+    <div class="status" id="status">loading…</div>
+  </header>
+  <p class="lede">Tokenized stocks on BNB Chain trade all weekend. Wall Street doesn't. Afterhours prices each stock while the exchange is closed, from Hyperliquid's 24/7 stock perps and the bStocks, Ondo and xStocks tokens themselves, and tells you when one drifts too far. Every forecast is scored against the official open.</p>
+
+  <div class="grid">
+    <div class="stat"><div class="k">Forecasts scored</div><div class="v" id="s-n">–</div></div>
+    <div class="stat"><div class="k">Our error at the open</div><div class="v amber" id="s-mae">–</div></div>
+    <div class="stat"><div class="k">"Price didn't move" error</div><div class="v" id="s-naive">–</div></div>
+    <div class="stat"><div class="k">Gap direction called</div><div class="v" id="s-hit">–</div></div>
+  </div>
+
+  <h2>Fair value now</h2>
+  <div id="bands"><div class="empty">Fair values run while the exchange is closed.</div></div>
+  <div class="legend"><span>━ band</span><span style="color:var(--amber)">┃ fair value</span><span>● token</span><span style="color:var(--down)">● outside band</span><span style="color:var(--amber)">○ perp</span></div>
+
+  <h2>Alerts</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>When (UTC)</th><th>Stock</th><th>Issuer</th><th>Side</th><th style="text-align:right">Edge</th><th style="text-align:right">At the open</th><th>Note</th></tr></thead>
+    <tbody id="alerts"><tr><td colspan="7" class="empty">No alerts yet.</td></tr></tbody>
+  </table></div>
+
+  <h2>Forecast log</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Open</th><th>Stock</th><th style="text-align:right">Last close</th><th style="text-align:right">Our forecast</th><th style="text-align:right">Actual open</th><th style="text-align:right">Our error</th><th style="text-align:right">Naive error</th></tr></thead>
+    <tbody id="forecasts"><tr><td colspan="7" class="empty">No opens scored yet.</td></tr></tbody>
+  </table></div>
+
+  <footer>Not investment advice. Fair value is a model, and the scorecard shows how good it has been. Prices: Binance Web3 API, Hyperliquid, Stooq (official opens). Source: <a href="https://github.com/Evoxravenlaude/afterhours">github.com/Evoxravenlaude/afterhours</a>.</footer>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const usd = (x) => x == null ? "–" : "$" + Number(x).toFixed(2);
+const pct = (x, d = 1) => x == null ? "–" : (x >= 0 ? "+" : "") + (x * 100).toFixed(d) + "%";
+const bps = (f, a) => Math.abs(f / a - 1) * 10000;
+const label = { bstocks: "bStocks", ondo: "Ondo", xstocks: "xStocks" };
+const time = (ms) => new Date(ms).toISOString().slice(5, 16).replace("T", " ");
+
+async function j(u) { const r = await fetch(u); return r.json(); }
+
+async function load() {
+  const [st, sc, fvs, al, fc] = await Promise.all([j("/api/status"), j("/api/score"), j("/api/fair-values"), j("/api/alerts?limit=60"), j("/api/forecasts")]);
+  const nextOpen = new Date(st.nextOpen);
+  $("status").innerHTML = st.open ? "NYSE <b>open</b>" : `NYSE closed · opens <b>${nextOpen.toUTCString().slice(0, 22)} UTC</b>` + (st.mode === "replay" ? " · replay" : "");
+
+  $("s-n").textContent = sc.n || "0";
+  $("s-mae").textContent = sc.n ? sc.maeBps.toFixed(0) + " bps" : "–";
+  $("s-naive").textContent = sc.n ? sc.naiveMaeBps.toFixed(0) + " bps" : "–";
+  $("s-hit").textContent = sc.n ? Math.round(sc.directionHitRate * 100) + "%" : "–";
+
+  if (st.mode === "replay") $("bands").innerHTML = '<div class="empty">Replay mode shows recorded weekends. Live fair values appear here while the exchange is closed.</div>';
+  if (fvs.length && !st.open) {
+    $("bands").innerHTML = fvs.map((f) => {
+      const lo = f.low * 0.985, hi = f.high * 1.015, x = (p) => Math.max(0, Math.min(100, ((p - lo) / (hi - lo)) * 100));
+      const ext = f.inputs.external ? `<div class="dot ext" style="left:${x(f.inputs.external)}%" title="perp ${usd(f.inputs.external)}"></div>` : "";
+      return `<div class="band"><div class="t">${f.ticker}</div>
+        <div class="track"><div class="rng" style="left:${x(f.low)}%;width:${x(f.high) - x(f.low)}%"></div><div class="fv" style="left:${x(f.value)}%"></div>${ext}</div>
+        <div class="px">${usd(f.value)}<div class="muted" style="font-size:12px">${usd(f.low)}–${usd(f.high)}</div></div></div>`;
+    }).join("");
+  }
+
+  if (al.length) {
+    $("alerts").innerHTML = al.map((a) => `<tr>
+      <td class="muted">${time(a.at)}</td><td><b>${a.ticker}</b></td><td>${label[a.issuer] || a.issuer}</td><td>${a.side}</td>
+      <td class="num">${pct(a.edgePct)}</td>
+      <td class="num ${a.worthPct == null ? "muted" : a.worthPct > 0 ? "pos" : "neg"}">${a.worthPct == null ? "pending" : pct(a.worthPct)}</td>
+      <td class="muted">${a.suppressed ? "silenced: " + a.suppressed : a.taken ? "acted on" : ""}</td></tr>`).join("");
+  }
+
+  const done = fc.filter((f) => f.actualOpen);
+  if (done.length) {
+    $("forecasts").innerHTML = done.slice(0, 60).map((f) => {
+      const e = bps(f.fairValue, f.actualOpen), n = bps(f.lastClose, f.actualOpen);
+      return `<tr><td class="muted">${time(f.openAt)}</td><td><b>${f.ticker}</b></td><td class="num">${usd(f.lastClose)}</td><td class="num">${usd(f.fairValue)}</td><td class="num">${usd(f.actualOpen)}</td>
+        <td class="num ${e < n ? "pos" : "neg"}">${e.toFixed(0)} bps</td><td class="num muted">${n.toFixed(0)} bps</td></tr>`;
+    }).join("");
+  }
+}
+load(); setInterval(load, 60000);
+</script>
+</body>
+</html>

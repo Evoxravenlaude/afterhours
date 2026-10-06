@@ -9,10 +9,12 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "tsc -b packages/core packages/sources apps/engine",
     "test": "vitest run",
+    "typecheck": "tsc -b packages/core packages/sources apps/engine",
     "gate": "tsx scripts/gate.ts",
-    "engine": "tsx apps/engine/src/index.ts"
+    "backtest": "tsx scripts/backtest.ts",
+    "engine": "tsx apps/engine/src/index.ts",
+    "replay": "MODE=replay tsx apps/engine/src/index.ts"
   },
   "engines": {
     "node": ">=20"
@@ -22,5 +24,8 @@
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "tsx": "^4.23.15"
   }
 }

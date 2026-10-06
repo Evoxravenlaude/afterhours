@@ -1,5 +1,5 @@
 import {
-  fairValue, findDislocations, applyGuards, isOpen, lastClose, nextOpen, hoursClosed, score,
+  fairValue, findDislocations, applyGuards, isOpen, lastClose, nextOpen, hoursClosed, score, shouldRealert,
   type Dislocation, type FairValue,
 } from "@afterhours/core";
 import type { Store, AlertRow } from "./store.js";
@@ -49,7 +49,9 @@ export class Engine {
         this.store.upsertForecast({ ticker, periodStart: lcAt, openAt: noAt, lastClose: close, fairValue: fv.value, tokenOnly: tokenOnly.value, external: s.external?.price });
       }
 
-      const { alerts, suppressed } = applyGuards(findDislocations(fv, s.quotes, this.cfg.costs), s.guards, now);
+      const found = findDislocations(fv, s.quotes, this.cfg.costs);
+      for (const q of s.quotes) if (!found.some((d) => d.contract === q.contract)) this.store.set(`inband:${q.contract}`, String(now));
+      const { alerts, suppressed } = applyGuards(found, s.guards, now);
       for (const d of suppressed) { this.store.insertAlert(d, lcAt, d.reason); res.suppressed++; }
       for (const d of alerts) {
         if (!this.shouldAlert(d, now)) continue;
@@ -66,9 +68,7 @@ export class Engine {
   }
 
   private shouldAlert(d: Dislocation, now: number): boolean {
-    const prev = this.store.lastAlertFor(d.contract, d.side);
-    if (!prev) return true;
-    return now - prev.at >= this.cfg.realertMs || d.netEdgePct >= prev.netEdgePct * 1.5;
+    return shouldRealert(this.store.lastAlertFor(d.contract, d.side), { at: now, netEdgePct: d.netEdgePct }, Number(this.store.get(`inband:${d.contract}`) ?? 0));
   }
 
   private async settle(snap: Snapshot): Promise<string[]> {

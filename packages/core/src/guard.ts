@@ -45,3 +45,21 @@ export function applyGuards(ds: Dislocation[], states: GuardState[], now: number
   }
   return { alerts, suppressed };
 }
+
+export interface RealertRule { growthFactor: number; growthMinGapMs: number }
+/**
+ * One alert per episode. An episode starts when a token leaves the band and ends when it comes back inside.
+ * Within an episode we only speak again if the edge has doubled and at least two hours have passed.
+ */
+export const DEFAULT_REALERT: RealertRule = { growthFactor: 2, growthMinGapMs: 2 * 3_600_000 };
+
+export function shouldRealert(
+  prev: { at: number; netEdgePct: number } | undefined,
+  next: { at: number; netEdgePct: number },
+  lastInBandAt = 0,
+  rule: RealertRule = DEFAULT_REALERT,
+): boolean {
+  if (!prev) return true;
+  if (lastInBandAt > prev.at) return true; // it came back inside the band since we last alerted: new episode
+  return next.at - prev.at >= rule.growthMinGapMs && next.netEdgePct >= prev.netEdgePct * rule.growthFactor;
+}
