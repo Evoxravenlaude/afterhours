@@ -59,7 +59,11 @@ export class Engine {
 
       const found = findDislocations(fv, s.quotes, this.cfg.costs);
       for (const q of s.quotes) if (!found.some((d) => d.contract === q.contract)) this.store.set(`inband:${q.contract}`, String(now));
-      const { alerts, suppressed } = applyGuards(found, s.guards, now);
+      // A token whose normal gap to the stock hasn't been learned yet (it needs a few minutes of open-market
+      // quotes) can't be judged: AMD's bStocks token sits ~2.9% under the stock every day. Stay quiet until learned.
+      const judged = found.filter((d) => s.quotes.find((q) => q.contract === d.contract)?.basis !== undefined);
+      res.suppressed += found.length - judged.length;
+      const { alerts, suppressed } = applyGuards(judged, s.guards, now);
       for (const d of suppressed) { this.store.insertAlert(d, lcAt, d.reason); res.suppressed++; }
       for (const d of alerts) {
         if (!this.shouldAlert(d, now)) continue;

@@ -17,13 +17,20 @@ function snap(now: number, xPrice: number, oracle?: number): Snapshot {
   }]]) };
 }
 
+/** A Friday-session reading where every token sits at the stock's price, so each learns a basis of 1. */
+function friday(now: number): Snapshot {
+  const s = snap(now, 200, 200);
+  s.tickers.get("NVDA")!.quotes = s.tickers.get("NVDA")!.quotes.map((q) => ({ ...q, tokenPrice: 200 }));
+  return s;
+}
+
 describe("engine", () => {
   it("captures the close while open, alerts while closed, dedupes, then settles at the open", async () => {
     const store = new Store(":memory:");
     const notify = { alert: vi.fn(async () => {}), morning: vi.fn(async () => {}) };
     const e = new Engine(store, { ...config, forecastLeadMin: 5, openReadDelayMin: 2 }, notify);
 
-    await e.tick(snap(T("2026-10-09T19:55:00Z"), 200, 200));        // Friday, open: records spot
+    for (let i = 0; i < 10; i++) await e.tick(friday(T("2026-10-09T19:45:00Z") + i * 60_000)); // Friday, open: spot + basis
     const sat = await e.tick(snap(T("2026-10-10T12:00:00Z"), 199)); // Saturday: xStocks lags
     expect(sat.alerts).toHaveLength(1);
     expect(sat.alerts[0].issuer).toBe("xstocks");
@@ -49,12 +56,23 @@ describe("engine", () => {
   it("silences alerts around a scheduled multiplier change", async () => {
     const store = new Store(":memory:");
     const e = new Engine(store, config);
-    await e.tick(snap(T("2026-10-09T19:55:00Z"), 200, 200));
+    for (let i = 0; i < 10; i++) await e.tick(friday(T("2026-10-09T19:45:00Z") + i * 60_000));
     const s = snap(T("2026-10-10T12:00:00Z"), 199);
     s.tickers.get("NVDA")!.guards.push({ ticker: "NVDA", pendingMultiplier: { multiplier: 1.004, effectiveAt: T("2026-10-10T20:00:00Z"), issuer: "xstocks" } });
     const r = await e.tick(s);
     expect(r.alerts).toHaveLength(0);
     expect(r.suppressed).toBe(1);
+  });
+});
+
+describe("unlearned tokens", () => {
+  it("stays quiet on a token whose basis hasn't been learned yet", async () => {
+    const store = new Store(":memory:");
+    const e = new Engine(store, config);
+    await e.tick(snap(T("2026-10-09T19:55:00Z"), 200, 200));          // one open-market reading: not enough to learn
+    const r = await e.tick(snap(T("2026-10-10T12:00:00Z"), 199));
+    expect(r.alerts).toHaveLength(0);
+    expect(r.suppressed).toBeGreaterThan(0);
   });
 });
 
