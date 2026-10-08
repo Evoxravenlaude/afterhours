@@ -98,7 +98,7 @@ async function main() {
       for (const t of its) {
         try {
           const { k, interval } = await tokenCandles(t.contract, fri.open, openAt + 6 * 3_600_000);
-          const end = (x: { openTime: number; closeTime: number }) => (x.closeTime ? x.closeTime + 1 : x.openTime + interval);
+          const end = (x: { openTime: number }) => x.openTime + interval;
           const m = mult.get(t.contract)!;
           const basis = estimateBasis(k.filter((x) => truthAt.has(end(x))).map((x) => ({ tokenShare: x.close / m, truth: truthAt.get(end(x))! })));
           if (basis) basisLog.push({ issuer: t.issuer, basis });

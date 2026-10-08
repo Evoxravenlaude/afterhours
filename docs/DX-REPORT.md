@@ -80,3 +80,7 @@ _Suggestion:_ name the offending field in `messageDetail` and document the limit
 **F15. Only bStocks implement BEP-677 on BSC.**
 `uiMultiplier()` returns a value on bStocks (MUB 1.000107…, NVDAB 1.000778…, CRCLB exactly 1) and reverts on every Ondo and xStocks token we probed, though Ondo tokens answer ERC-165. So "BEP-677 multiplier" means bStocks only; for the other issuers the multiplier exists only in Binance's API fields, which F4 already found ambiguous.
 _Suggestion:_ say per issuer which multiplier source is authoritative.
+
+**F16. K-line `closeTime` follows a different convention per issuer.**
+Ondo candles close at `openTime + interval − 1` (…59.999), bStocks and xStocks candles at `openTime + interval` exactly. Matching token candles to official 15-minute bars by end time silently failed for every bStocks and xStocks token: our per-token basis was learned for 80 of 80 Ondo token-weekends and 0 of 160 others, and nothing errored. We now derive the close from `openTime` and the interval and ignore the field.
+_Suggestion:_ one convention for every series, stated in the docs.

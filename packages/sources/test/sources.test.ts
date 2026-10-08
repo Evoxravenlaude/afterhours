@@ -170,3 +170,15 @@ describe("k-line paging", () => {
     expect(calls.slice(before).every((c) => !c.includes("startTime"))).toBe(true);
   });
 });
+
+describe("k-line clock", () => {
+  it("normalises closeTime whichever convention the issuer's series uses", async () => {
+    const t = Date.parse("2026-10-02T13:30:00Z");
+    const f = (async () => new Response(JSON.stringify(ok({ klineInfos: [
+      [t, "1", "1", "1", "1", "0", t + 900_000 - 1],   // Ondo style: ends at …59.999
+      [t + 900_000, "1", "1", "1", "1", "0", t + 1_800_000],   // bStocks style: ends on the boundary
+    ] })))) as unknown as typeof fetch;
+    const k = await new BinanceRwa({ fetchImpl: f, retries: 0 }).klines("0xabc", "15m");
+    expect(k.map((x) => x.closeTime - x.openTime)).toEqual([899_999, 899_999]);
+  });
+});

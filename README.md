@@ -33,7 +33,7 @@ Built for **BNB Hack: Tokenized Stocks Edition**.
 
 ```bash
 npm install
-npm test                         # 64 tests
+npm test                         # 65 tests
 npx tsx scripts/gate.ts          # live check of every data source; saves raw responses
 npx tsx scripts/backtest.ts 8    # score the model on the last 8 weekends -> docs/SCORECARD.md
 npm run engine                   # live mode on :8787

@@ -128,8 +128,10 @@ export class BinanceRwa {
   async klines(contract: string, interval: KlineInterval = "15m", limit = KLINE_MAX_LIMIT, window?: { startTime?: number; endTime?: number }, chainId = BSC_CHAIN_ID): Promise<Kline[]> {
     const d: any = await this.call(PATHS.kline, { chainId, contractAddress: contract, interval, limit, startTime: window?.startTime, endTime: window?.endTime });
     const rows: any[] = d?.klineInfos ?? [];
-    return rows.map((k) => ({ openTime: Number(k[0]), open: Number(k[1]), high: Number(k[2]), low: Number(k[3]), close: Number(k[4]), closeTime: Number(k[6]) }))
-      .filter((k) => Number.isFinite(k.close));
+    // closeTime differs by issuer (DX-REPORT F16): Ondo candles end at …59.999, bStocks and xStocks exactly on the
+    // boundary. Normalise to openTime + interval − 1 so every series lines up with the same clock.
+    return rows.map((k) => ({ openTime: Number(k[0]), open: Number(k[1]), high: Number(k[2]), low: Number(k[3]), close: Number(k[4]), closeTime: Number(k[0]) + INTERVAL_MS[interval] - 1 }))
+      .filter((k) => Number.isFinite(k.close) && Number.isFinite(k.openTime));
   }
 
   /** Which request shape the k-line endpoint accepted (see DX-REPORT F14). Discovered once, then reused. */
