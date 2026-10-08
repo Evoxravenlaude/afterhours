@@ -53,7 +53,8 @@ async function tokenCandles(contract: `0x${string}`, start: number, end: number)
   throw last;
 }
 let klineCount = 0;
-const coverage = new Map<string, { candles: number[]; withBasis: number }>();
+const coverage = new Map<string, { candles: number[]; withBasis: number; matched: number[]; ratios: number[]; session: number[] }>();
+const diag = new Set<string>();
 
 async function main() {
   const tokens = new Map<string, Awaited<ReturnType<BinanceRwa["listTokens"]>>[number]>();
@@ -101,8 +102,15 @@ async function main() {
           const m = mult.get(t.contract)!;
           const basis = estimateBasis(k.filter((x) => truthAt.has(end(x))).map((x) => ({ tokenShare: x.close / m, truth: truthAt.get(end(x))! })));
           if (basis) basisLog.push({ issuer: t.issuer, basis });
-          const cv = coverage.get(t.issuer) ?? { candles: [], withBasis: 0 };
-          cv.candles.push(k.filter((x) => x.openTime < openAt).length); if (basis) cv.withBasis++; coverage.set(t.issuer, cv);
+          const cv = coverage.get(t.issuer) ?? { candles: [], withBasis: 0, matched: [], ratios: [], session: [] };
+          const inSession = k.filter((x) => x.openTime >= fri.open && x.openTime < fri.close);
+          const pairs = k.filter((x) => truthAt.has(end(x))).map((x) => x.close / m / truthAt.get(end(x))!);
+          cv.candles.push(k.filter((x) => x.openTime < openAt).length); cv.session.push(inSession.length); cv.matched.push(pairs.length); cv.ratios.push(...pairs);
+          if (basis) cv.withBasis++; coverage.set(t.issuer, cv);
+          if (!basis && inSession.length && pairs.length === 0 && !diag.has(t.issuer)) {
+            diag.add(t.issuer);
+            console.log(`  basis diag ${t.symbol}: ${inSession.length} session candles, e.g. openTime ${new Date(inSession[0].openTime).toISOString()} closeTime ${inSession[0].closeTime}; truth bar ends e.g. ${[...truthAt.keys()].slice(0, 2).map((x) => new Date(x).toISOString()).join(", ")} (${truthAt.size} bars)`);
+          }
           series.push({ issuer: t.issuer as TokenSeries["issuer"], symbol: t.symbol, contract: t.contract, multiplier: m, basis, candles: k.map((x) => ({ t: end(x), c: x.close })) });
           klineCount += k.length;
         } catch (e) { console.log(`  klines ${t.symbol}: ${String(e).slice(0, 120)}`); }
@@ -128,7 +136,8 @@ async function main() {
     const o = alertOutcomes(all.filter((x) => x.issuer === i), costPct);
     return `| ${issuerLabel(i)} | ${o.n} | ${o.traded.n ? (o.traded.winRate * 100).toFixed(0) + "% of " + o.traded.n : "–"} | ${o.traded.n ? pct(o.traded.avgNetPct) : "–"} | ${pct(o.atOpen.avgNetPct)} |`;
   }).join("\n") || "| – | 0 | – | – | – |";
-  const coverageRows = [...coverage].map(([i, c]) => { const m = [...c.candles].sort((x, y) => x - y); return `| ${issuerLabel(i)} | ${c.candles.length} | ${m[m.length >> 1] ?? 0} | ${c.withBasis} of ${c.candles.length} |`; }).join("\n");
+  const med = (xs: number[]) => { const m = [...xs].sort((x, y) => x - y); return m.length ? m[m.length >> 1] : NaN; };
+  const coverageRows = [...coverage].map(([i, c]) => `| ${issuerLabel(i)} | ${c.candles.length} | ${med(c.candles)} | ${med(c.session)} | ${med(c.matched)} | ${c.ratios.length ? ((med(c.ratios) - 1) * 100).toFixed(2) + "%" : "–"} | ${c.withBasis} of ${c.candles.length} |`).join("\n");
   const both = results.map((r) => r.forecast).filter((f) => f.external && f.tokenOnly);
   const sweep = [0, 0.3, 0.5, 0.7, 0.9, 1].map((w) => ({ w, bps: both.length ? both.reduce((acc, f) => acc + Math.abs(Math.exp(Math.log(f.lastClose) + w * Math.log(f.external! / f.lastClose) + (1 - w) * Math.log(f.tokenOnly! / f.lastClose)) / f.actualOpen! - 1) * 1e4, 0) / both.length : NaN }));
   mkdirSync("apps/engine/replay", { recursive: true });
@@ -165,8 +174,10 @@ ${issuerAlertRows}
 
 ## Token data coverage
 
-| Issuer | Token-weekends | 15m candles per weekend (median) | Basis learned |
-|---|---|---|---|
+Medians per token-weekend. A basis needs at least 6 Friday-session candles that line up with an official 15-minute bar and sit within 10% of it.
+
+| Issuer | Token-weekends | Candles (Fri open → Mon open) | In Friday session | Matched to official bars | Raw token/stock gap | Basis learned |
+|---|---|---|---|---|---|---|
 ${coverageRows}
 
 ## How much weight the tokens deserve in the forecast

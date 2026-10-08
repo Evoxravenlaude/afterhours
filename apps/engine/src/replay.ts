@@ -16,7 +16,7 @@ export function seedFromBacktest(store: Store, path: string): { forecasts: numbe
     f++;
     for (const al of r.alerts ?? []) {
       const id = store.insertAlert(al, r.forecast.periodStart);
-      store.settleAlert(id, r.forecast.actualOpen, al.worthPct);
+      store.settleAlert(id, r.forecast.actualOpen, al.worthPct, al.exitPct);
       a++;
     }
   }

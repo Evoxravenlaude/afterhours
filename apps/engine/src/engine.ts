@@ -100,7 +100,12 @@ export class Engine {
       this.store.settleForecast(f.ticker, f.openAt, s.oraclePx);
       for (const a of this.store.alertsForPeriod(f.periodStart).filter((a) => a.ticker === f.ticker && !a.suppressed && a.worthPct == null)) {
         const worth = a.side === "buy" ? s.oraclePx / a.sharePrice - 1 : a.sharePrice / s.oraclePx - 1;
-        this.store.settleAlert(a.id, s.oraclePx, worth);
+        // What the alert actually paid: the same token's per-share price now, on the same basis it was alerted on.
+        const q = s.quotes.find((x) => x.contract === a.contract);
+        const b = Number(this.store.get(`basis:${a.contract}`)) || 1;
+        const now = q ? q.tokenPrice / q.multiplier / b : undefined;
+        const traded = now === undefined ? undefined : a.side === "buy" ? now / a.sharePrice - 1 : a.sharePrice / now - 1;
+        this.store.settleAlert(a.id, s.oraclePx, worth, traded);
       }
       periods.add(f.periodStart);
       settled.push(f.ticker);

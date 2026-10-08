@@ -3,7 +3,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import type { Dislocation, FairValue, Forecast } from "@afterhours/core";
 
-export interface AlertRow extends Dislocation { id: number; periodStart: number; suppressed?: string | null; taken?: number; openPrice?: number | null; worthPct?: number | null }
+export interface AlertRow extends Dislocation { id: number; periodStart: number; suppressed?: string | null; taken?: number; openPrice?: number | null; worthPct?: number | null; tradedPct?: number | null }
 
 export class Store {
   db: DatabaseSync;
@@ -23,6 +23,8 @@ export class Store {
       CREATE TABLE IF NOT EXISTS subscribers (chat_id TEXT PRIMARY KEY, muted INTEGER DEFAULT 0, streak INTEGER DEFAULT 0, last_card INTEGER);
       CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
     `);
+    // traded_pct: the alert valued by the same token's price after the open (what a holder could realise).
+    try { this.db.exec("ALTER TABLE alerts ADD COLUMN traded_pct REAL"); } catch { /* already there */ }
   }
 
   saveFairValue(fv: FairValue) {
@@ -47,13 +49,13 @@ export class Store {
   recentAlerts(limit = 50): AlertRow[] {
     return (this.db.prepare("SELECT * FROM alerts ORDER BY at DESC LIMIT ?").all(limit) as any[]).map((r) => this.row(r)!);
   }
-  settleAlert(id: number, openPrice: number, worthPct: number) {
-    this.db.prepare("UPDATE alerts SET open_price = ?, worth_pct = ? WHERE id = ?").run(openPrice, worthPct, id);
+  settleAlert(id: number, openPrice: number, worthPct: number, tradedPct?: number) {
+    this.db.prepare("UPDATE alerts SET open_price = ?, worth_pct = ?, traded_pct = ? WHERE id = ?").run(openPrice, worthPct, tradedPct ?? null, id);
   }
   private row(r: any): AlertRow | undefined {
     if (!r) return undefined;
     return { id: r.id, ticker: r.ticker, issuer: r.issuer, symbol: r.symbol, contract: r.contract, side: r.side, sharePrice: r.share_price, fairValue: r.fair_value,
-      edgePct: r.edge_pct, netEdgePct: r.net_edge_pct, at: r.at, periodStart: r.period_start, suppressed: r.suppressed, taken: r.taken, openPrice: r.open_price, worthPct: r.worth_pct };
+      edgePct: r.edge_pct, netEdgePct: r.net_edge_pct, at: r.at, periodStart: r.period_start, suppressed: r.suppressed, taken: r.taken, openPrice: r.open_price, worthPct: r.worth_pct, tradedPct: r.traded_pct };
   }
 
   upsertForecast(f: Forecast & { external?: number }) {

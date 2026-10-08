@@ -144,7 +144,12 @@ export interface CostModel {
   minNetEdgePct: number;
 }
 
-export const DEFAULT_COSTS: CostModel = { costPct: () => 0.0025 + 0.003, minNetEdgePct: 0.003 };
+/**
+ * minNetEdgePct 0.5%: in the 2026-10-08 backtest, alerts with under 0.5% expected edge after costs won 51% of
+ * the time when traded (+0.39% average), against 66% (+1.0%) above it. Chosen on the same data it's judged by,
+ * so the live weekends are the real test.
+ */
+export const DEFAULT_COSTS: CostModel = { costPct: () => 0.0025 + 0.003, minNetEdgePct: 0.005 };
 
 /** Tokens trading outside the fair-value band by more than costs. */
 export function findDislocations(fv: FairValue, quotes: TokenQuote[], costs: CostModel = DEFAULT_COSTS): Dislocation[] {

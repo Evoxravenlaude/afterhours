@@ -40,7 +40,8 @@ describe("engine", () => {
     const f = store.forecasts()[0];
     expect(f.actualOpen).toBe(205.6);
     const a = store.recentAlerts()[0];
-    expect(a.worthPct!).toBeCloseTo(205.6 / 199 - 1, 6);
+    expect(a.worthPct!).toBeCloseTo(205.6 / 199 - 1, 6);   // paper: vs the official open
+    expect(a.tradedPct!).toBeCloseTo(205 / 199 - 1, 6);    // real: the xStocks token itself after the open
     expect(notify.morning).toHaveBeenCalledTimes(1);
     expect(e.scorecard().improvementPct).toBeGreaterThan(50);
   });
@@ -72,7 +73,7 @@ describe("delivery", () => {
     expect(quoteCommand({ ...row, side: "sell" }, 199)).toContain(`--fromToken ${row.contract} --toToken ${BSC_USDT}`);
   });
   it("renders the morning card", () => {
-    const d = { periodLabel: "Fri close → Mon open", alerts: [{ ...row, worthPct: 0.033, taken: 1 }], score: { n: 4, maeBps: 22, naiveMaeBps: 140, improvementPct: 84, directionHitRate: 1 } };
+    const d = { periodLabel: "Fri close → Mon open", alerts: [{ ...row, worthPct: 0.04, tradedPct: 0.033, taken: 1 }], score: { n: 4, maeBps: 22, naiveMaeBps: 140, improvementPct: 84, directionHitRate: 1 } };
     expect(cardSvg(d)).toContain("+3.3%");
     const png = cardPng(d);
     expect(png.subarray(1, 4).toString()).toBe("PNG");

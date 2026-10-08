@@ -15,7 +15,7 @@ Built for **BNB Hack: Tokenized Stocks Edition**.
 - **Silence on corporate-action days.** A scheduled multiplier change (BEP-677 `newUIMultiplier` / `effectiveAt`) or a corporate-action pause from Binance's asset status API (`cash_dividend`, `stock_split`, …) silences the ticker. A token about to rebase looks mispriced until it does; alerting then sends people into a trap.
 - **A public scorecard.** The forecast is locked 5 minutes before each open and scored against the official opening print, next to the naive forecast ("the price didn't move") and a token-only forecast. If it can't beat "the price didn't move", it shouldn't send alerts.
 - **Parity audit.** Every multiplier change is checked against the corporate action that caused it (dividend × (1 − withholding) ÷ reference price, or the split ratio), giving a per-issuer fidelity score.
-- **Morning card.** After each open: alerts sent, alerts acted on, the best alert valued at the open, alerts silenced, and the forecast error versus naive. Built to be shared.
+- **Morning card.** After each open: alerts sent, alerts acted on, the best alert valued by the token's own price after the open, alerts silenced, and the forecast error versus naive. Built to be shared.
 - **Agent skill.** `skill/afterhours/SKILL.md` lets any agent ask "is this token cheap right now?" and hand off to `binance-agentic-wallet` for a quote.
 
 ## How it uses the Binance stack
@@ -56,7 +56,7 @@ docs               DX-REPORT.md, SCORECARD.md
 ## Honest state
 
 - The scorecard is only as good as its data: Binance k-lines, Hyperliquid candles and official daily bars (Yahoo, Nasdaq fallback). The backtest uses today's multipliers for past weekends; a dividend inside a window shifts that token by its yield.
-- In live mode the opening print comes from Hyperliquid's oracle two minutes after the open; the backtest uses the official opening print.
+- In live mode the forecast is scored against Hyperliquid's oracle two minutes after the open, and each alert against its own token's price at that moment; the backtest uses the official opening print and the token's first trade after the open.
 - Costs are estimated (DEX fee plus slippage), not quoted per alert, and the backtest has no historical pool depth: an alert on a thin pool may not fill at the size you want.
 - The scorecard values alerts two ways: by the token's own first traded price after the open (what a holder could realise) and against the official open (paper). Only the first counts.
 - Not investment advice. Tokenized stocks are not available to US persons.

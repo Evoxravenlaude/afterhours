@@ -68,7 +68,7 @@
 
   <h2>Alerts</h2>
   <div class="scroll"><table>
-    <thead><tr><th>When (UTC)</th><th>Stock</th><th>Issuer</th><th>Side</th><th style="text-align:right">Edge</th><th style="text-align:right">At the open</th><th>Note</th></tr></thead>
+    <thead><tr><th>When (UTC)</th><th>Stock</th><th>Issuer</th><th>Side</th><th style="text-align:right">Edge</th><th style="text-align:right">Traded</th><th>Note</th></tr></thead>
     <tbody id="alerts"><tr><td colspan="7" class="empty">No alerts yet.</td></tr></tbody>
   </table></div>
 
@@ -115,7 +115,7 @@ async function load() {
     $("alerts").innerHTML = al.map((a) => `<tr>
       <td class="muted">${time(a.at)}</td><td><b>${a.ticker}</b></td><td>${label[a.issuer] || a.issuer}</td><td>${a.side}</td>
       <td class="num">${pct(a.edgePct)}</td>
-      <td class="num ${a.worthPct == null ? "muted" : a.worthPct > 0 ? "pos" : "neg"}">${a.worthPct == null ? "pending" : pct(a.worthPct)}</td>
+      <td class="num ${a.tradedPct == null ? "muted" : a.tradedPct > 0 ? "pos" : "neg"}" title="${a.worthPct == null ? "" : "vs official open " + pct(a.worthPct)}">${a.tradedPct == null ? (a.worthPct == null ? "pending" : "no trade") : pct(a.tradedPct)}</td>
       <td class="muted">${a.suppressed ? "silenced: " + a.suppressed : a.taken ? "acted on" : ""}</td></tr>`).join("");
   }
 
