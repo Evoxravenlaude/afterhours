@@ -1,0 +1,90 @@
+{
+  "at": "2026-10-08T06:59:59.466Z",
+  "results": [
+    {
+      "check": "token list type=none",
+      "ok": true,
+      "note": "1938 tokens; issuers: ondo,xstocks,unknown"
+    },
+    {
+      "check": "token list type=0",
+      "ok": false,
+      "note": "0 tokens; issuers: "
+    },
+    {
+      "check": "token list type=1",
+      "ok": true,
+      "note": "1366 tokens; issuers: ondo"
+    },
+    {
+      "check": "token list type=2",
+      "ok": true,
+      "note": "269 tokens; issuers: xstocks"
+    },
+    {
+      "check": "token list type=3",
+      "ok": true,
+      "note": "91 tokens; issuers: unknown"
+    },
+    {
+      "check": "token list type=4",
+      "ok": true,
+      "note": "4 tokens; issuers: unknown"
+    },
+    {
+      "check": "token list type=5",
+      "ok": true,
+      "note": "194 tokens; issuers: unknown,ondo"
+    },
+    {
+      "check": "BSC tokens across issuers",
+      "ok": true,
+      "note": "{\"ondo\":458,\"xstocks\":130,\"unknown\":96}"
+    },
+    {
+      "check": "dynamic EEMon (ondo)",
+      "ok": true,
+      "note": "token=67.53535355127575 stock=66.62498 mult=1.0136641474605432 share/stock=1.00000"
+    },
+    {
+      "check": "dynamic AAPLx (xstocks)",
+      "ok": true,
+      "note": "token=332.021318996111 stock=336.2 mult=1.0032690125398187 share/stock=0.98435"
+    },
+    {
+      "check": "dynamic MUB (unknown)",
+      "ok": true,
+      "note": "token=1079.1960146627468 stock=undefined mult=1.0001075125688057 share/stock=undefined"
+    },
+    {
+      "check": "market status",
+      "ok": true,
+      "note": "{\"openState\":\"true\",\"nextOpenTime\":1791446460000,\"nextCloseTime\":1791446100000}"
+    },
+    {
+      "check": "asset status EEMon",
+      "ok": true,
+      "note": "{\"openState\":\"true\",\"marketStatus\":\"overnight\",\"reasonCode\":\"TRADING\",\"nextOpenTime\":1791446460000,\"nextCloseTime\":1791446100000}"
+    },
+    {
+      "check": "asset status AAPLx",
+      "ok": true,
+      "note": "{\"openState\":\"true\",\"marketStatus\":null,\"reasonCode\":\"TRADING\"}"
+    },
+    {
+      "check": "klines EEMon",
+      "ok": true,
+      "note": "200 candles; last close 67.53535355127575"
+    },
+    {
+      "check": "hyperliquid xyz perps",
+      "ok": true,
+      "note": "132 markets, 96 liquid; overlap with BSC tokens: TSLA,NVDA,HOOD,INTC,PLTR,COIN,META,AAPL,MSFT,ORCL,GOOGL,AMZN,AMD,MU,SNDK,MSTR,CRCL,NFLX,LLY,TSM,RIVN,BABA,USAR,CRWV,URNM,GME,EWY,EWJ,HIMS,LITE,MRVL,RKLB,DRAM,CBRS,EWZ,ARM,SPCX,ASML,QNT,DELL,IBM,AVGO,NOW,NBIS,WDC,NOK,SMH,BE,QCOM,STRC,BOT,AMAT,SHAZ,SKHY,GEV,KORU,SOXL,IREN,NET,CRWD,AAOI,MRNA,BMNR,SNXX,TLT"
+    },
+    {
+      "check": "BEP-677 uiMultiplier readable",
+      "ok": false,
+      "note": "0 of 30 BSC tokens"
+    }
+  ]
+}
