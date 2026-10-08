@@ -1,13 +1,13 @@
 # Afterhours scorecard (backtest)
 
-Generated 2026-10-08T08:53:32.566Z from real data: Binance token k-lines, Hyperliquid xyz perp candles, official daily bars (Yahoo / Nasdaq).
+Generated 2026-10-08T09:02:26.036Z from real data: Binance token k-lines, Hyperliquid xyz perp candles, official daily bars (Yahoo / Nasdaq).
 8 weekends × 10 tickers = 80 forecasts scored. Forecast locked 5 minutes before the Monday open.
 
 | Measure | Value |
 |---|---|
 | Our mean error vs the official open | 29.6 bps |
 | Naive forecast (Friday close) | 99.2 bps |
-| Tokens only (no perp signal) | 38.7 bps |
+| Tokens only (no perp signal) | 31.4 bps |
 | Error reduction vs naive | 70.1% |
 | Direction of gaps ≥ 0.5% called correctly | 98% |
 | Scored against official prints / Hyperliquid oracle proxy | 80 / 0 |
@@ -20,14 +20,14 @@ An alert is worth something only if the token itself moves. "Traded" buys (or se
 
 | Measure | Traded (realisable) | vs official open (paper) |
 |---|---|---|
-| Alerts | 214 of 277 (63 had no trade within 6h of the open) | 277 |
-| Worth acting on after costs | 67% | 85% |
-| Average value after costs | 1.03% | 1.42% |
+| Alerts | 193 of 259 (66 had no trade within 6h of the open) | 259 |
+| Worth acting on after costs | 68% | 80% |
+| Average value after costs | 1.19% | 0.97% |
 
 | Issuer | Alerts | Traded: won after costs | Traded: average after costs | Paper: average after costs |
 |---|---|---|---|---|
-| xStocks | 69 | 73% of 11 | 1.26% | 0.91% |
-| bStocks | 208 | 67% of 203 | 1.02% | 1.59% |
+| xStocks | 72 | 73% of 11 | 1.26% | 0.87% |
+| bStocks | 187 | 68% of 182 | 1.19% | 1.01% |
 
 ## Token data coverage
 
@@ -36,8 +36,8 @@ Medians per token-weekend. A basis needs at least 6 Friday-session candles that 
 | Issuer | Token-weekends | Candles (Fri open → Mon open) | In Friday session | Matched to official bars | Raw token/stock gap | Basis learned |
 |---|---|---|---|---|---|---|
 | Ondo | 80 | 288 | 26 | 26 | -0.00% | 80 of 80 |
-| xStocks | 80 | 0 | 0 | 0 | – | 0 of 80 |
-| bStocks | 80 | 219 | 24 | 0 | – | 0 of 80 |
+| xStocks | 80 | 0 | 0 | 0 | 0.00% | 0 of 80 |
+| bStocks | 80 | 219 | 24 | 24 | -0.07% | 70 of 80 |
 
 ## How much weight the tokens deserve in the forecast
 
@@ -45,7 +45,7 @@ Error vs the official open when fair value blends the perp (weight w) with the t
 
 | w | 0.0 | 0.3 | 0.5 | 0.7 | 0.9 | 1.0 |
 |---|---|---|---|---|---|---|
-| Error (bps) | 38.7 | 35.2 | 33.2 | 31.4 | 30.1 | 29.6 |
+| Error (bps) | 31.4 | 30.1 | 29.6 | 29.4 | 29.5 | 29.6 |
 
 ## Issuer basis while the exchange is open
 
@@ -54,5 +54,6 @@ How far each issuer's tokens normally sit from the real stock price (per share, 
 | Issuer | Token-weekends | Median | Range |
 |---|---|---|---|
 | Ondo | 80 | -0.00% | -0.13% to 0.01% |
+| bStocks | 70 | -0.07% | -2.88% to 0.21% |
 
 Approximations: multipliers are today's values for every past weekend. Where official daily bars were unreachable, the Friday close and Monday open come from the Hyperliquid oracle's 15-minute candles (counted separately above); that proxy shares a source with the perp signal, so official-print rows are the stronger evidence.
