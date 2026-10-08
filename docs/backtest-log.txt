@@ -1,0 +1,112 @@
+679 BSC tokens; 10 tickers also have a liquid Hyperliquid perp: GOOGL, TSLA, AAPL, AMZN, MSFT, PLTR, AMD, NVDA, META, COIN
+  k-lines: interval 15m, request shape "end"
+GOOGL 2026-10-02→2026-10-05 [yahoo]: close 343.5 open 342.5899963378906 | ours 342.52 tokens 342.37 perp 342.58 | bases 1.0000/-/- | 0 alerts
+GOOGL 2026-09-25→2026-09-28 [yahoo]: close 343.9200134277344 open 340.70001220703125 | ours 341.50 tokens 341.33 perp 341.57 | bases 1.0000/-/- | 0 alerts
+GOOGL 2026-09-18→2026-09-21 [yahoo]: close 349.5400085449219 open 350.6400146484375 | ours 350.65 tokens 350.39 perp 350.76 | bases 1.0000/-/- | 2 alerts
+GOOGL 2026-09-11→2026-09-14 [yahoo]: close 338.5 open 343.1199951171875 | ours 342.57 tokens 342.51 perp 342.59 | bases 1.0000/-/- | 3 alerts
+GOOGL 2026-09-04→2026-09-08 [yahoo]: close 338.4599914550781 open 335.4200134277344 | ours 336.40 tokens 336.09 perp 336.54 | bases 1.0000/-/- | 1 alerts
+GOOGL 2026-08-28→2026-08-31 [yahoo]: close 346.5899963378906 open 343.8299865722656 | ours 344.48 tokens 344.38 perp 344.52 | bases 0.9995/-/- | 5 alerts
+GOOGL 2026-08-21→2026-08-24 [yahoo]: close 344.82000732421875 open 343.6199951171875 | ours 342.84 tokens 342.82 perp 342.85 | bases 0.9996/-/- | 6 alerts
+GOOGL 2026-08-14→2026-08-17 [yahoo]: close 345.8999938964844 open 346.2699890136719 | ours 347.01 tokens 346.35 perp 347.29 | bases 0.9996/-/- | 4 alerts
+TSLA 2026-10-02→2026-10-05 [yahoo]: close 370.5899963378906 open 369 | ours 369.11 tokens 368.80 perp 369.24 | bases 1.0000/-/- | 2 alerts
+TSLA 2026-09-25→2026-09-28 [yahoo]: close 372.1099853515625 open 368.05999755859375 | ours 370.13 tokens 370.06 perp 370.16 | bases 1.0000/-/- | 0 alerts
+TSLA 2026-09-18→2026-09-21 [yahoo]: close 364.2699890136719 open 371.6400146484375 | ours 370.30 tokens 370.12 perp 370.37 | bases 1.0000/-/- | 1 alerts
+TSLA 2026-09-11→2026-09-14 [yahoo]: close 365.44000244140625 open 359.7799987792969 | ours 358.49 tokens 358.21 perp 358.61 | bases 1.0000/-/- | 4 alerts
+TSLA 2026-09-04→2026-09-08 [yahoo]: close 354.0799865722656 open 357.1000061035156 | ours 356.66 tokens 356.54 perp 356.71 | bases 1.0000/-/- | 6 alerts
+TSLA 2026-08-28→2026-08-31 [yahoo]: close 348.75 open 347.2099914550781 | ours 346.44 tokens 346.41 perp 346.45 | bases 1.0000/-/- | 6 alerts
+TSLA 2026-08-21→2026-08-24 [yahoo]: close 362.8599853515625 open 361.4100036621094 | ours 361.70 tokens 361.03 perp 361.98 | bases 1.0000/-/- | 10 alerts
+TSLA 2026-08-14→2026-08-17 [yahoo]: close 342.2699890136719 open 340.69000244140625 | ours 341.28 tokens 341.25 perp 341.29 | bases 1.0000/-/- | 10 alerts
+AAPL 2026-10-02→2026-10-05 [yahoo]: close 333.69000244140625 open 332.82000732421875 | ours 332.16 tokens 331.89 perp 332.28 | bases 1.0000/-/- | 0 alerts
+AAPL 2026-09-25→2026-09-28 [yahoo]: close 341.07000732421875 open 340.3699951171875 | ours 340.28 tokens 340.29 perp 340.27 | bases 1.0000/-/- | 0 alerts
+AAPL 2026-09-18→2026-09-21 [yahoo]: close 336.1300048828125 open 335.2799987792969 | ours 335.72 tokens 335.61 perp 335.77 | bases 1.0000/-/- | 0 alerts
+AAPL 2026-09-11→2026-09-14 [yahoo]: close 332.2699890136719 open 334.7900085449219 | ours 333.13 tokens 331.82 perp 333.69 | bases 1.0000/-/- | 0 alerts
+AAPL 2026-09-04→2026-09-08 [yahoo]: close 319.9700012207031 open 317.1000061035156 | ours 317.99 tokens 317.96 perp 318.00 | bases 1.0000/-/- | 0 alerts
+AAPL 2026-08-28→2026-08-31 [yahoo]: close 319.70001220703125 open 319.6000061035156 | ours 319.98 tokens 319.77 perp 320.07 | bases 1.0000/-/- | 0 alerts
+AAPL 2026-08-21→2026-08-24 [yahoo]: close 309.3500061035156 open 311.4700012207031 | ours 311.04 tokens 310.98 perp 311.06 | bases 1.0000/-/- | 0 alerts
+AAPL 2026-08-14→2026-08-17 [yahoo]: close 305.92999267578125 open 306.2099914550781 | ours 306.51 tokens 306.26 perp 306.62 | bases 1.0000/-/- | 0 alerts
+AMZN 2026-10-02→2026-10-05 [yahoo]: close 251.52000427246094 open 250.19000244140625 | ours 251.35 tokens 250.76 perp 251.60 | bases 1.0000/-/- | 0 alerts
+AMZN 2026-09-25→2026-09-28 [yahoo]: close 249.6699981689453 open 246.6300048828125 | ours 247.59 tokens 247.49 perp 247.64 | bases 1.0000/-/- | 0 alerts
+AMZN 2026-09-18→2026-09-21 [yahoo]: close 253.7100067138672 open 256.3999938964844 | ours 255.04 tokens 254.74 perp 255.16 | bases 1.0000/-/- | 0 alerts
+AMZN 2026-09-11→2026-09-14 [yahoo]: close 256.7799987792969 open 253.14999389648438 | ours 253.08 tokens 253.04 perp 253.10 | bases 1.0000/-/- | 0 alerts
+AMZN 2026-09-04→2026-09-08 [yahoo]: close 258.510009765625 open 256.67999267578125 | ours 256.62 tokens 256.00 perp 256.89 | bases 1.0000/-/- | 0 alerts
+AMZN 2026-08-28→2026-08-31 [yahoo]: close 266.42999267578125 open 263.8299865722656 | ours 264.11 tokens 264.03 perp 264.14 | bases 1.0000/-/- | 0 alerts
+AMZN 2026-08-21→2026-08-24 [yahoo]: close 258.6300048828125 open 259.6000061035156 | ours 258.67 tokens 258.65 perp 258.68 | bases 1.0000/-/- | 0 alerts
+AMZN 2026-08-14→2026-08-17 [yahoo]: close 262.6499938964844 open 265.44000244140625 | ours 265.90 tokens 265.73 perp 265.98 | bases 1.0000/-/- | 0 alerts
+MSFT 2026-10-02→2026-10-05 [yahoo]: close 517.530029296875 open 521.6199951171875 | ours 520.62 tokens 520.68 perp 520.59 | bases 1.0000/-/- | 0 alerts
+MSFT 2026-09-25→2026-09-28 [yahoo]: close 516.1699829101562 open 505.4700012207031 | ours 508.23 tokens 508.09 perp 508.29 | bases 1.0000/-/- | 2 alerts
+MSFT 2026-09-18→2026-09-21 [yahoo]: close 493.7799987792969 open 494.95001220703125 | ours 494.44 tokens 492.44 perp 495.30 | bases 1.0000/-/- | 0 alerts
+MSFT 2026-09-11→2026-09-14 [yahoo]: close 495.6300048828125 open 497.05999755859375 | ours 496.91 tokens 496.06 perp 497.28 | bases 1.0000/-/- | 2 alerts
+MSFT 2026-09-04→2026-09-08 [yahoo]: close 499.70001220703125 open 493.010009765625 | ours 494.88 tokens 494.76 perp 494.93 | bases 1.0000/-/- | 1 alerts
+MSFT 2026-08-28→2026-08-31 [yahoo]: close 513.530029296875 open 510.3800048828125 | ours 509.04 tokens 508.55 perp 509.25 | bases 0.9999/-/- | 3 alerts
+MSFT 2026-08-21→2026-08-24 [yahoo]: close 483.239990234375 open 483.2099914550781 | ours 482.87 tokens 482.10 perp 483.20 | bases 1.0000/-/- | 8 alerts
+MSFT 2026-08-14→2026-08-17 [yahoo]: close 495.3999938964844 open 490.1400146484375 | ours 491.22 tokens 490.12 perp 491.69 | bases 0.9987/-/- | 1 alerts
+PLTR 2026-10-02→2026-10-05 [yahoo]: close 188.75 open 189.4499969482422 | ours 189.11 tokens 189.07 perp 189.13 | bases 1.0001/-/- | 0 alerts
+PLTR 2026-09-25→2026-09-28 [yahoo]: close 189.6699981689453 open 186.2310028076172 | ours 186.33 tokens 186.30 perp 186.35 | bases 1.0000/-/- | 4 alerts
+PLTR 2026-09-18→2026-09-21 [yahoo]: close 177.63999938964844 open 178.72500610351562 | ours 178.73 tokens 178.78 perp 178.71 | bases 0.9999/-/- | 2 alerts
+PLTR 2026-09-11→2026-09-14 [yahoo]: close 167.22999572753906 open 169.69500732421875 | ours 168.72 tokens 168.80 perp 168.69 | bases 1.0000/-/- | 5 alerts
+PLTR 2026-09-04→2026-09-08 [yahoo]: close 174.3300018310547 open 173.60000610351562 | ours 173.47 tokens 173.45 perp 173.47 | bases 1.0000/-/- | 6 alerts
+PLTR 2026-08-28→2026-08-31 [yahoo]: close 186.2899932861328 open 184.4949951171875 | ours 183.65 tokens 183.75 perp 183.61 | bases 1.0000/-/- | 2 alerts
+PLTR 2026-08-21→2026-08-24 [yahoo]: close 179.94000244140625 open 177.38999938964844 | ours 177.88 tokens 177.89 perp 177.87 | bases 1.0000/-/- | 1 alerts
+PLTR 2026-08-14→2026-08-17 [yahoo]: close 174.0399932861328 open 174.05999755859375 | ours 173.44 tokens 173.47 perp 173.43 | bases 1.0000/-/- | 3 alerts
+AMD 2026-10-02→2026-10-05 [yahoo]: close 633.9099731445312 open 630.6099853515625 | ours 623.93 tokens 612.88 perp 628.72 | bases 1.0000/-/- | 30 alerts
+AMD 2026-09-25→2026-09-28 [yahoo]: close 630.6300048828125 open 624.9000244140625 | ours 616.82 tokens 601.37 perp 623.56 | bases 1.0000/-/- | 21 alerts
+AMD 2026-09-18→2026-09-21 [yahoo]: close 559.8200073242188 open 583.8800048828125 | ours 579.34 tokens 579.47 perp 579.28 | bases 1.0000/-/- | 25 alerts
+AMD 2026-09-11→2026-09-14 [yahoo]: close 516.1300048828125 open 486.2799987792969 | ours 486.07 tokens 485.89 perp 486.14 | bases 1.0000/-/- | 7 alerts
+AMD 2026-09-04→2026-09-08 [yahoo]: close 477.57000732421875 open 488.9200134277344 | ours 487.61 tokens 486.25 perp 488.19 | bases 1.0000/-/- | 13 alerts
+AMD 2026-08-28→2026-08-31 [yahoo]: close 465.5799865722656 open 466.2200012207031 | ours 464.92 tokens 464.71 perp 465.01 | bases 1.0000/-/- | 2 alerts
+AMD 2026-08-21→2026-08-24 [yahoo]: close 473.25 open 468.5400085449219 | ours 465.12 tokens 465.09 perp 465.13 | bases 1.0000/-/- | 1 alerts
+AMD 2026-08-14→2026-08-17 [yahoo]: close 514.3900146484375 open 514.1599731445312 | ours 512.78 tokens 512.22 perp 513.02 | bases 1.0000/-/- | 2 alerts
+NVDA 2026-10-02→2026-10-05 [yahoo]: close 233.9499969482422 open 236.08999633789062 | ours 235.55 tokens 235.49 perp 235.57 | bases 1.0000/-/- | 1 alerts
+NVDA 2026-09-25→2026-09-28 [yahoo]: close 225.07000732421875 open 229.75 | ours 229.75 tokens 229.59 perp 229.82 | bases 1.0000/-/- | 6 alerts
+NVDA 2026-09-18→2026-09-21 [yahoo]: close 222.27000427246094 open 222.94000244140625 | ours 223.56 tokens 223.43 perp 223.61 | bases 1.0000/-/- | 3 alerts
+NVDA 2026-09-11→2026-09-14 [yahoo]: close 218.2899932861328 open 211.24000549316406 | ours 212.17 tokens 212.05 perp 212.22 | bases 1.0000/-/- | 3 alerts
+NVDA 2026-09-04→2026-09-08 [yahoo]: close 230.36000061035156 open 233.11000061035156 | ours 232.48 tokens 232.18 perp 232.61 | bases 0.9992/-/- | 7 alerts
+NVDA 2026-08-28→2026-08-31 [yahoo]: close 217.5500030517578 open 218.8699951171875 | ours 218.52 tokens 218.95 perp 218.34 | bases 0.9992/-/- | 6 alerts
+NVDA 2026-08-21→2026-08-24 [yahoo]: close 214.72000122070312 open 215.52999877929688 | ours 214.99 tokens 214.34 perp 215.27 | bases 0.9992/-/- | 9 alerts
+NVDA 2026-08-14→2026-08-17 [yahoo]: close 225.16000366210938 open 225.97999572753906 | ours 226.31 tokens 226.06 perp 226.42 | bases 0.9992/-/- | 18 alerts
+META 2026-10-02→2026-10-05 [yahoo]: close 728.0800170898438 open 727.7100219726562 | ours 726.25 tokens 726.07 perp 726.32 | bases 1.0000/-/- | 0 alerts
+META 2026-09-25→2026-09-28 [yahoo]: close 751.6599731445312 open 750.0399780273438 | ours 745.59 tokens 745.00 perp 745.85 | bases 0.9999/-/- | 1 alerts
+META 2026-09-18→2026-09-21 [yahoo]: close 665.75 open 680.2999877929688 | ours 680.57 tokens 677.95 perp 681.70 | bases 0.9995/-/- | 0 alerts
+META 2026-09-11→2026-09-14 [yahoo]: close 648.030029296875 open 657.8300170898438 | ours 652.68 tokens 652.36 perp 652.81 | bases 0.9994/-/- | 0 alerts
+META 2026-09-04→2026-09-08 [yahoo]: close 616.77001953125 open 616.2100219726562 | ours 614.84 tokens 614.66 perp 614.92 | bases 0.9995/-/- | 0 alerts
+META 2026-08-28→2026-08-31 [yahoo]: close 578.02001953125 open 577.6300048828125 | ours 579.32 tokens 579.33 perp 579.32 | bases 0.9995/-/- | 0 alerts
+META 2026-08-21→2026-08-24 [yahoo]: close 549.9000244140625 open 550.2000122070312 | ours 550.87 tokens 549.39 perp 551.51 | bases 0.9994/-/- | 0 alerts
+META 2026-08-14→2026-08-17 [yahoo]: close 589.8499755859375 open 589.75 | ours 587.57 tokens 586.55 perp 588.00 | bases 0.9995/-/- | 0 alerts
+COIN 2026-10-02→2026-10-05 [yahoo]: close 183 open 186.91000366210938 | ours 187.73 tokens 187.53 perp 187.82 | bases 1.0000/-/- | 7 alerts
+COIN 2026-09-25→2026-09-28 [yahoo]: close 195.11000061035156 open 196.08999633789062 | ours 194.40 tokens 194.24 perp 194.47 | bases 1.0000/-/- | 10 alerts
+COIN 2026-09-18→2026-09-21 [yahoo]: close 194.25 open 205.19000244140625 | ours 205.16 tokens 204.99 perp 205.23 | bases 0.9999/-/- | 10 alerts
+COIN 2026-09-11→2026-09-14 [yahoo]: close 175.25999450683594 open 180.80999755859375 | ours 177.96 tokens 177.94 perp 177.97 | bases 0.9997/-/- | 8 alerts
+COIN 2026-09-04→2026-09-08 [yahoo]: close 184.63999938964844 open 180.67999267578125 | ours 182.48 tokens 182.04 perp 182.67 | bases 1.0000/-/- | 9 alerts
+COIN 2026-08-28→2026-08-31 [yahoo]: close 178.63999938964844 open 178.50999450683594 | ours 179.18 tokens 179.31 perp 179.13 | bases 1.0000/-/- | 8 alerts
+COIN 2026-08-21→2026-08-24 [yahoo]: close 186.49000549316406 open 188.75 | ours 190.29 tokens 189.70 perp 190.54 | bases 1.0000/-/- | 8 alerts
+COIN 2026-08-14→2026-08-17 [yahoo]: close 148.47000122070312 open 148.36000061035156 | ours 148.82 tokens 148.85 perp 148.81 | bases 1.0001/-/- | 1 alerts
+
+# Afterhours scorecard (backtest)
+
+Generated 2026-10-08T08:28:23.702Z from real data: Binance token k-lines, Hyperliquid xyz perp candles, official daily bars (Yahoo / Nasdaq).
+8 weekends × 10 tickers = 80 forecasts scored. Forecast locked 5 minutes before the Monday open.
+
+| Measure | Value |
+|---|---|
+| Our mean error vs the official open | 31.4 bps |
+| Naive forecast (Friday close) | 99.2 bps |
+| Tokens only (no perp signal) | 38.7 bps |
+| Error reduction vs naive | 68.4% |
+| Direction of gaps ≥ 0.5% called correctly | 100% |
+| Scored against official prints / Hyperliquid oracle proxy | 80 / 0 |
+| Our error, official prints only | 31.4 bps vs 99.2 naive |
+| Token candles loaded | 37936 (15m, request shape "end") |
+| Alerts raised | 316 |
+| Alerts worth acting on at the open, after costs | 75% |
+| Average alert value at the open, after costs | 1.05% |
+
+## Issuer basis while the exchange is open
+
+How far each issuer's tokens normally sit from the real stock price (per share, after the multiplier), measured on Friday sessions. Afterhours measures closed-hours moves from this level, not from zero.
+
+| Issuer | Token-weekends | Median | Range |
+|---|---|---|---|
+| Ondo | 80 | -0.00% | -0.13% to 0.01% |
+
+Approximations: multipliers are today's values for every past weekend. Where official daily bars were unreachable, the Friday close and Monday open come from the Hyperliquid oracle's 15-minute candles (counted separately above); that proxy shares a source with the perp signal, so official-print rows are the stronger evidence.
+
