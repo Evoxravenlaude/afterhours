@@ -123,3 +123,50 @@ describe("ground truth parsers", () => {
     expect(parseNasdaqHistorical(j)[0]).toMatchObject({ date: "2026-10-02", open: 186.5, close: 1189.2 });
   });
 });
+
+describe("k-line paging", () => {
+  const H = 3_600_000, T0 = Date.parse("2026-10-02T13:00:00Z");
+  /** A fake endpoint with 100 hourly candles from T0 that rejects whatever `reject` says, like Binance's 000002. */
+  function endpoint(reject: (p: URLSearchParams) => boolean) {
+    const all = Array.from({ length: 100 }, (_, i) => T0 + i * H);
+    const calls: string[] = [];
+    const f = (async (input: RequestInfo | URL) => {
+      const p = new URL(String(input)).searchParams;
+      calls.push(p.toString());
+      if (reject(p)) return new Response(JSON.stringify({ code: "000002", message: "illegal parameter", data: null, success: false }));
+      const limit = Number(p.get("limit")), s = p.get("startTime"), e = p.get("endTime");
+      let rows = all.filter((t) => (!s || t >= Number(s)) && (!e || t <= Number(e)));
+      rows = s && !e ? rows.slice(0, limit) : rows.slice(-limit);
+      return new Response(JSON.stringify(ok({ klineInfos: rows.map((t) => [t, "1", "1", "1", String(t / H), "0", t + H - 1]) })));
+    }) as typeof fetch;
+    return { client: new BinanceRwa({ fetchImpl: f, retries: 0 }), calls };
+  }
+  const range = [T0 + 10 * H, T0 + 90 * H] as const;
+
+  it("never asks for more than 200 candles", async () => {
+    const { client, calls } = endpoint((p) => Number(p.get("limit")) > 200);
+    const k = await client.klinesRange("0xabc", "15m", ...range);
+    expect(k).toHaveLength(80);
+    expect(calls.every((c) => Number(new URLSearchParams(c).get("limit")) <= 200)).toBe(true);
+    expect(client.klineShape).toBe("start+end");
+  });
+  it("falls back to paging backwards from endTime when a full window is refused", async () => {
+    const { client } = endpoint((p) => p.has("startTime"));
+    const k = await client.klinesRange("0xabc", "1h", ...range);
+    expect(k.map((x) => x.openTime)).toEqual(Array.from({ length: 80 }, (_, i) => range[0] + i * H));
+    expect(client.klineShape).toBe("end");
+  });
+  it("falls back to no window and keeps only the requested range", async () => {
+    const { client } = endpoint((p) => p.has("startTime") || p.has("endTime"));
+    const k = await client.klinesRange("0xabc", "1h", ...range);
+    expect(k).toHaveLength(80);
+    expect(client.klineShape).toBe("none");
+  });
+  it("remembers the accepted shape", async () => {
+    const { client, calls } = endpoint((p) => p.has("startTime"));
+    await client.klinesRange("0xabc", "1h", ...range);
+    const before = calls.length;
+    await client.klinesRange("0xabc", "1h", ...range);
+    expect(calls.slice(before).every((c) => !c.includes("startTime"))).toBe(true);
+  });
+});

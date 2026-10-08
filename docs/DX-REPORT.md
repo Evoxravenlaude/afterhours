@@ -63,9 +63,20 @@ _Suggestion:_ document the `type` enum (1 Ondo, 2 xStocks, 3 bStocks, 4 pre-IPO�
 **F11. `openState` is a JSON boolean in live responses, and there's an undocumented `offhours` block.**
 Market status returned `"openState": true`, `"marketStatus": "overnight"`, `"reasonCode": null`, plus `"offhours": { "openState": false, "nextOpenTime": …, "nextCloseTime": … }`. None of that shape is in the skill docs, which describe string states.
 
-**F12. K-lines omit intervals with no trades.**
-EEMon's 1h k-lines jump from Saturday 05:00 UTC to Monday 00:00 UTC. That is reasonable, but undocumented: an integrator who assumes one candle per interval will misalign series or treat a quiet token as fresh. We now separate "fresh" quotes (which shape fair value) from "held" last-traded prices (which can still be flagged).
-_Suggestion:_ state the gap behaviour, or add a `fill=previous` option.
+**F12. K-lines omit intervals with no quote, and Ondo tokens stop for the weekend.**
+EEMon's 1h k-lines end with the candle that closes at Saturday 00:00 UTC and resume Monday 00:00 UTC, on both weekends in the response (2026-09-25 and 2026-10-02): Friday 8pm to Sunday 8pm New York time, Ondo Global Markets' 24/5 schedule. Neither the gap behaviour nor the per-issuer hours are documented. An integrator who assumes one candle per interval will misalign series, and one who reads the weekend price as live will flag a frozen Friday-evening price as a weekend dislocation. We now separate "fresh" quotes (which shape fair value) from "held" prices, and never alert on an Ondo token during its closed window.
+_Suggestion:_ state the gap behaviour (or add `fill=previous`), and expose each issuer's trading window in the asset status response.
 
 **F13. `stockInfo.price` is null for bStocks.**
 MUB returned `"price": null` in `stockInfo` while xStocks and Ondo returned numbers. Three issuers, three behaviours for the same field.
+
+### 2026-10-08: First backtest run
+
+**F14. K-lines with a time window fail with "illegal parameter", and the error doesn't say which one.**
+`kline/ai?interval=15m&limit=300&startTime=…&endTime=…` returned `code=000002 "illegal parameter"` for every token, while `interval=1h&limit=200` without a window worked in the same session. Any of four things could be the cause (limit above a cap, the window, its span, or the interval), and the response names none of them. Our first backtest therefore scored the perp signal alone, without our noticing until we read the log.
+We now never ask for more than 200 candles and try request shapes in order (start+end in 200-candle chunks, then endTime only paging backwards, then startTime only, then no window), keep the first one accepted, and print it in the scorecard.
+_Suggestion:_ name the offending field in `messageDetail` and document the limit cap, the window rules and the supported intervals.
+
+**F15. Only bStocks implement BEP-677 on BSC.**
+`uiMultiplier()` returns a value on bStocks (MUB 1.000107…, NVDAB 1.000778…, CRCLB exactly 1) and reverts on every Ondo and xStocks token we probed, though Ondo tokens answer ERC-165. So "BEP-677 multiplier" means bStocks only; for the other issuers the multiplier exists only in Binance's API fields, which F4 already found ambiguous.
+_Suggestion:_ say per issuer which multiplier source is authoritative.

@@ -1,4 +1,5 @@
 import type { Issuer, TokenQuote, ExternalSignal, Dislocation } from "./types.js";
+import { issuerClosed } from "./guard.js";
 import { fairValue, findDislocations, DEFAULT_MODEL, DEFAULT_COSTS, type ModelConfig, type CostModel } from "./model.js";
 import type { Forecast } from "./scorer.js";
 import { shouldRealert } from "./guard.js";
@@ -71,7 +72,7 @@ export function backtestPeriod(p: PeriodInput, opts: { stepMs?: number; leadMs?:
     const snap = snapshot(p, t, maxCandleAgeMs, holdMs);
     if (!snap.held.length || (!snap.fresh.length && !snap.external)) continue;
     const f = fairValue({ ticker: p.ticker, now: t, lastClose: p.lastClose, lastCloseAt: p.lastCloseAt, hoursClosed: (t - p.lastCloseAt) / 3_600_000, quotes: snap.fresh, external: snap.external }, { ...model, maxSignalAgeMs: maxCandleAgeMs });
-    const out = findDislocations(f, snap.held, costs);
+    const out = findDislocations(f, snap.held.filter((q) => !issuerClosed(q.issuer, t)), costs);
     for (const q of snap.held) if (!out.some((d) => d.contract === q.contract)) inBandAt.set(q.contract, t);
     for (const d of out) {
       const key = `${d.contract}:${d.side}`;

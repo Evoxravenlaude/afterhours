@@ -53,6 +53,11 @@ export interface DynamicInfo {
 
 export interface AssetStatus { openState: string; marketStatus?: string; reasonCode?: string; reasonMsg?: string; nextOpenTime?: number; nextCloseTime?: number }
 
+export type KlineInterval = "1m" | "5m" | "15m" | "1h" | "4h" | "12h" | "1d";
+export type KlineShape = "start+end" | "end" | "start" | "none";
+export const KLINE_MAX_LIMIT = 200;
+const INTERVAL_MS: Record<KlineInterval, number> = { "1m": 60_000, "5m": 300_000, "15m": 900_000, "1h": 3_600_000, "4h": 14_400_000, "12h": 43_200_000, "1d": 86_400_000 };
+
 export interface Kline { openTime: number; open: number; high: number; low: number; close: number; closeTime: number }
 
 /**
@@ -120,11 +125,65 @@ export class BinanceRwa {
     return { openState: String(d?.openState ?? "UNKNOWN"), marketStatus: d?.marketStatus, reasonCode: d?.reasonCode ?? undefined, reasonMsg: d?.reasonMsg ?? undefined, nextOpenTime: num(d?.nextOpenTime), nextCloseTime: num(d?.nextCloseTime) };
   }
 
-  async klines(contract: string, interval: "1m" | "5m" | "15m" | "1h" | "4h" | "12h" | "1d" = "15m", limit = 300, window?: { startTime: number; endTime: number }, chainId = BSC_CHAIN_ID): Promise<Kline[]> {
+  async klines(contract: string, interval: KlineInterval = "15m", limit = KLINE_MAX_LIMIT, window?: { startTime?: number; endTime?: number }, chainId = BSC_CHAIN_ID): Promise<Kline[]> {
     const d: any = await this.call(PATHS.kline, { chainId, contractAddress: contract, interval, limit, startTime: window?.startTime, endTime: window?.endTime });
     const rows: any[] = d?.klineInfos ?? [];
     return rows.map((k) => ({ openTime: Number(k[0]), open: Number(k[1]), high: Number(k[2]), low: Number(k[3]), close: Number(k[4]), closeTime: Number(k[6]) }))
       .filter((k) => Number.isFinite(k.close));
+  }
+
+  /** Which request shape the k-line endpoint accepted (see DX-REPORT F14). Discovered once, then reused. */
+  klineShape?: KlineShape;
+
+  /**
+   * Every candle in [start, end), paged. The endpoint rejected `limit=300` with startTime+endTime as
+   * "illegal parameter" (code 000002) on 2026-10-08 while `limit=200` without a window worked, and the
+   * docs don't say which part was illegal. So: never ask for more than 200, and try request shapes in
+   * order until one is accepted: start+end, end only (page backwards), start only (page forwards),
+   * no window (recent candles only, filtered).
+   */
+  async klinesRange(contract: string, interval: KlineInterval, start: number, end: number, chainId = BSC_CHAIN_ID): Promise<Kline[]> {
+    const shapes: KlineShape[] = this.klineShape ? [this.klineShape] : ["start+end", "end", "start", "none"];
+    let last: unknown;
+    for (const shape of shapes) {
+      try {
+        const rows = await this.pageKlines(shape, contract, interval, start, end, chainId);
+        this.klineShape = shape;
+        return rows;
+      } catch (e) {
+        if (!(e instanceof BinanceApiError && e.code === "000002")) throw e;
+        last = e;
+      }
+    }
+    throw last;
+  }
+
+  private async pageKlines(shape: KlineShape, contract: string, interval: KlineInterval, start: number, end: number, chainId: string): Promise<Kline[]> {
+    const step = INTERVAL_MS[interval], span = step * KLINE_MAX_LIMIT, out = new Map<number, Kline>();
+    const keep = (ks: Kline[]) => { for (const k of ks) if (k.openTime >= start && k.openTime < end) out.set(k.openTime, k); };
+    if (shape === "none") keep(await this.klines(contract, interval, KLINE_MAX_LIMIT, undefined, chainId));
+    else if (shape === "start+end") {
+      for (let a = start; a < end; a += span) keep(await this.klines(contract, interval, KLINE_MAX_LIMIT, { startTime: a, endTime: Math.min(end, a + span) - 1 }, chainId));
+    } else if (shape === "end") {
+      let cursor = end - 1;
+      for (let i = 0; i < 40 && cursor >= start; i++) {
+        const ks = await this.klines(contract, interval, KLINE_MAX_LIMIT, { endTime: cursor }, chainId);
+        keep(ks);
+        const first = Math.min(...ks.map((k) => k.openTime));
+        if (!ks.length || !(first <= cursor)) break;
+        cursor = first - 1;
+      }
+    } else {
+      let cursor = start;
+      for (let i = 0; i < 40 && cursor < end; i++) {
+        const ks = await this.klines(contract, interval, KLINE_MAX_LIMIT, { startTime: cursor }, chainId);
+        keep(ks);
+        const lastOpen = Math.max(...ks.map((k) => k.openTime));
+        if (!ks.length || !(lastOpen >= cursor)) break;
+        cursor = lastOpen + step;
+      }
+    }
+    return [...out.values()].sort((a, b) => a.openTime - b.openTime);
   }
 
   /** A token quote ready for the model: price per raw token plus its multiplier. */

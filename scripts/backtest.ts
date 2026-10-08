@@ -3,7 +3,7 @@
  *   npx tsx scripts/backtest.ts [weekends=8]
  *
  * Truth: official Friday close and Monday open (Yahoo chart API, Nasdaq fallback, Stooq last).
- * Inputs: Binance token k-lines (15m) per issuer, Hyperliquid xyz perp candles (15m).
+ * Inputs: Binance token k-lines (15m, or 1h if 15m is refused; paged at 200 per request) per issuer, Hyperliquid xyz perp candles (15m).
  * Basis: each token's normal ratio to the real price, learned from Friday's session against 15-minute bars.
  * Output: docs/SCORECARD.md and apps/engine/replay/backtest.json (also used by replay mode).
  *
@@ -12,7 +12,7 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { backtestPeriod, alertOutcomes, score, sessionFor, isTradingDay, estimateBasis, issuerLabel, type PeriodResult, type TokenSeries } from "../packages/core/src/index.js";
-import { BinanceRwa, HyperliquidStocks, dailyBars, intradayBars } from "../packages/sources/src/index.js";
+import { BinanceRwa, HyperliquidStocks, dailyBars, intradayBars, type Kline, type KlineInterval } from "../packages/sources/src/index.js";
 
 const WEEKENDS = Number(process.argv[2] ?? 8);
 const bin = new BinanceRwa();
@@ -36,6 +36,23 @@ function weekendPeriods(n: number): { closeDate: string; openDate: string }[] {
   }
   return out;
 }
+
+/** Token candles over a window: 15-minute if the endpoint serves them, else hourly. */
+let klineInterval: KlineInterval | undefined;
+async function tokenCandles(contract: `0x${string}`, start: number, end: number): Promise<{ k: Kline[]; interval: number }> {
+  const order: KlineInterval[] = klineInterval ? [klineInterval] : ["15m", "1h"];
+  let last: unknown;
+  for (const iv of order) {
+    try {
+      const k = await bin.klinesRange(contract, iv, start, end);
+      if (!klineInterval) console.log(`  k-lines: interval ${iv}, request shape "${bin.klineShape}"`);
+      klineInterval = iv;
+      return { k, interval: iv === "15m" ? 900_000 : 3_600_000 };
+    } catch (e) { last = e; }
+  }
+  throw last;
+}
+let klineCount = 0;
 
 async function main() {
   const tokens = new Map<string, Awaited<ReturnType<BinanceRwa["listTokens"]>>[number]>();
@@ -73,15 +90,18 @@ async function main() {
         if (!pc || !po) { skipped.push(`${ticker} ${closeDate}`); continue; }
         c = { date: closeDate, open: pc.o, close: pc.c }; o = { date: openDate, open: po.o, close: po.c }; source = "hl-proxy";
       }
-      const truthAt = new Map(intraday.filter((b) => b.t >= fri.open && b.t < fri.close).map((b) => [b.t, b.c]));
+      // Keyed by bar end, so a 15m or 1h token candle compares with the official price at the same instant.
+      const truthAt = new Map(intraday.filter((b) => b.t >= fri.open && b.t < fri.close).map((b) => [b.t + 15 * 60_000, b.c]));
       const series: TokenSeries[] = [];
       for (const t of its) {
         try {
-          const k = await bin.klines(t.contract, "15m", 300, { startTime: fri.open, endTime: openAt + 3_600_000 });
+          const { k, interval } = await tokenCandles(t.contract, fri.open, openAt + 3_600_000);
+          const end = (x: { openTime: number; closeTime: number }) => (x.closeTime ? x.closeTime + 1 : x.openTime + interval);
           const m = mult.get(t.contract)!;
-          const basis = estimateBasis(k.filter((x) => truthAt.has(x.openTime)).map((x) => ({ tokenShare: x.close / m, truth: truthAt.get(x.openTime)! })));
+          const basis = estimateBasis(k.filter((x) => truthAt.has(end(x))).map((x) => ({ tokenShare: x.close / m, truth: truthAt.get(end(x))! })));
           if (basis) basisLog.push({ issuer: t.issuer, basis });
-          series.push({ issuer: t.issuer as TokenSeries["issuer"], symbol: t.symbol, contract: t.contract, multiplier: m, basis, candles: k.map((x) => ({ t: x.closeTime || x.openTime + 15 * 60_000, c: x.close })) });
+          series.push({ issuer: t.issuer as TokenSeries["issuer"], symbol: t.symbol, contract: t.contract, multiplier: m, basis, candles: k.map((x) => ({ t: end(x), c: x.close })) });
+          klineCount += k.length;
         } catch (e) { console.log(`  klines ${t.symbol}: ${String(e).slice(0, 120)}`); }
       }
       const ext = (await hl.candles(perps.get(ticker)!, "15m", lastCloseAt - 3_600_000, openAt + 3_600_000).catch(() => [])).map((x) => ({ t: x.t + 15 * 60_000, c: x.c, v: x.v * x.c }));
@@ -114,6 +134,7 @@ ${periods.length} weekends × ${tickers.length} tickers = ${s.n} forecasts score
 | Direction of gaps ≥ 0.5% called correctly | ${(s.directionHitRate * 100).toFixed(0)}% |
 | Scored against official prints / Hyperliquid oracle proxy | ${official.n} / ${proxy.n} |
 | Our error, official prints only | ${official.n ? official.maeBps.toFixed(1) + " bps vs " + official.naiveMaeBps.toFixed(1) + " naive" : "n/a"} |
+| Token candles loaded | ${klineCount}${klineInterval ? ` (${klineInterval}, request shape "${bin.klineShape}")` : ""} |
 | Alerts raised | ${a.n} |
 | Alerts worth acting on at the open, after costs | ${(a.winRate * 100).toFixed(0)}% |
 | Average alert value at the open, after costs | ${(a.avgNetPct * 100).toFixed(2)}% |
@@ -126,7 +147,7 @@ How far each issuer's tokens normally sit from the real stock price (per share, 
 |---|---|---|---|
 ${basisRows || "| n/a | 0 | – | – |"}
 
-Approximations: multipliers are today's values for every past weekend. Where official daily bars were unreachable, the Friday close and Monday open come from the Hyperliquid oracle's 15-minute candles (counted separately above); that proxy shares a source with the perp signal, so official-print rows are the stronger evidence.${skipped.length ? `\nSkipped (no official bars): ${skipped.join(", ")}.` : ""}
+${klineCount ? "" : "**No token candles loaded: the token and alert layers are not scored in this run; the figures above are the perp signal alone.**\n\n"}Approximations: multipliers are today's values for every past weekend. Where official daily bars were unreachable, the Friday close and Monday open come from the Hyperliquid oracle's 15-minute candles (counted separately above); that proxy shares a source with the perp signal, so official-print rows are the stronger evidence.${skipped.length ? `\nSkipped (no official bars): ${skipped.join(", ")}.` : ""}
 `;
   writeFileSync("docs/SCORECARD.md", md);
   console.log("\n" + md);

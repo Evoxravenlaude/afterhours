@@ -10,7 +10,7 @@ Built for **BNB Hack: Tokenized Stocks Edition**.
 
 ## What it does
 
-- **Closed-market fair value.** A log-space blend of the last official close, Hyperliquid's 24/7 xyz stock perpetuals (an independent signal), and the cross-issuer consensus of bStocks, Ondo and xStocks, each converted to a per-share price with its BEP-677 multiplier. The band widens with source disagreement (robust MAD, so one mispriced token can't hide itself) and with signal age.
+- **Closed-market fair value.** A log-space blend of the last official close, Hyperliquid's 24/7 xyz stock perpetuals (an independent signal), and the cross-issuer consensus of bStocks, Ondo and xStocks, each converted to a per-share price with its multiplier (on-chain BEP-677 for bStocks, Binance's API for the others) and a learned per-token basis. The band widens with source disagreement (robust MAD, so one mispriced token can't hide itself) and with signal age.
 - **Alerts that mean something.** A token outside the band by more than estimated costs triggers one alert per episode. Telegram delivers it with a ready Binance Agentic Wallet quote command (preview only; nothing is signed).
 - **Silence on corporate-action days.** A scheduled multiplier change (BEP-677 `newUIMultiplier` / `effectiveAt`) or a corporate-action pause from Binance's asset status API (`cash_dividend`, `stock_split`, …) silences the ticker. A token about to rebase looks mispriced until it does; alerting then sends people into a trap.
 - **A public scorecard.** The forecast is locked 5 minutes before each open and scored against the official opening print, next to the naive forecast ("the price didn't move") and a token-only forecast. If it can't beat "the price didn't move", it shouldn't send alerts.
@@ -33,7 +33,7 @@ Built for **BNB Hack: Tokenized Stocks Edition**.
 
 ```bash
 npm install
-npm test                         # 45 tests
+npm test                         # 61 tests
 npx tsx scripts/gate.ts          # live check of every data source; saves raw responses
 npx tsx scripts/backtest.ts 8    # score the model on the last 8 weekends -> docs/SCORECARD.md
 npm run engine                   # live mode on :8787
@@ -46,7 +46,7 @@ Environment: see `.env.example`. Telegram is optional; without a token the engin
 
 ```
 packages/core      calendar, fair-value model, guards, scorer, audit, backtest (pure, tested)
-packages/sources   Binance Web3 RWA client, Hyperliquid perps, BEP-677 reader, Stooq daily bars
+packages/sources   Binance Web3 RWA client, Hyperliquid perps, BEP-677 reader, official daily bars
 apps/engine        tick loop, SQLite store, Telegram bot, morning card, API + web page
 skill/afterhours   agent skill
 scripts            gate.ts (live checks), backtest.ts (real-data scorecard)
@@ -55,8 +55,8 @@ docs               DX-REPORT.md, SCORECARD.md
 
 ## Honest state
 
-- The scorecard is only as good as its data: Binance k-lines, Hyperliquid candles and Stooq daily bars. The backtest uses today's multipliers for past weekends; a dividend inside a window shifts that token by its yield.
-- In live mode the opening print comes from Hyperliquid's oracle two minutes after the open; the backtest uses Stooq's official open.
+- The scorecard is only as good as its data: Binance k-lines, Hyperliquid candles and official daily bars (Yahoo, Nasdaq fallback). The backtest uses today's multipliers for past weekends; a dividend inside a window shifts that token by its yield.
+- In live mode the opening print comes from Hyperliquid's oracle two minutes after the open; the backtest uses the official opening print.
 - Costs are estimated (DEX fee plus slippage), not quoted per alert.
 - Not investment advice. Tokenized stocks are not available to US persons.
 

@@ -187,3 +187,20 @@ describe("status shapes from the live API", () => {
     expect(applyGuards([d], [{ ticker: "NVDA", assetStatus: { issuer: "ondo", openState: "false", reasonCode: "cash_dividend" } }], 0).alerts).toHaveLength(0);
   });
 });
+
+import { issuerClosed, suppressionFor } from "../src/index.js";
+describe("issuer hours", () => {
+  it("Ondo trades 24/5: closed Friday 8pm to Sunday 8pm ET", () => {
+    expect(issuerClosed("ondo", T("2026-10-02T23:30:00Z"))).toBe(false); // Fri 7:30pm EDT
+    expect(issuerClosed("ondo", T("2026-10-03T00:30:00Z"))).toBe(true);  // Fri 8:30pm EDT
+    expect(issuerClosed("ondo", T("2026-10-03T15:00:00Z"))).toBe(true);  // Saturday
+    expect(issuerClosed("ondo", T("2026-10-04T23:30:00Z"))).toBe(true);  // Sun 7:30pm EDT
+    expect(issuerClosed("ondo", T("2026-10-05T00:30:00Z"))).toBe(false); // Sun 8:30pm EDT
+    expect(issuerClosed("bstocks", T("2026-10-03T15:00:00Z"))).toBe(false);
+  });
+  it("silences a frozen Ondo price on Saturday", () => {
+    const d = { ticker: "NVDA", issuer: "ondo" as const, symbol: "NVDAon", contract: "0x0000000000000000000000000000000000000001" as const,
+      sharePrice: 196, fairValue: 200, edgePct: -0.02, netEdgePct: 0.0145, side: "buy" as const, at: 0 };
+    expect(suppressionFor(d, [], T("2026-10-03T15:00:00Z"))).toMatch(/24\/5/);
+  });
+});
