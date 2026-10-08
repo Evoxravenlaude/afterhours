@@ -1,6 +1,6 @@
 # Afterhours scorecard (backtest)
 
-Generated 2026-10-08T08:46:27.392Z from real data: Binance token k-lines, Hyperliquid xyz perp candles, official daily bars (Yahoo / Nasdaq).
+Generated 2026-10-08T08:53:32.566Z from real data: Binance token k-lines, Hyperliquid xyz perp candles, official daily bars (Yahoo / Nasdaq).
 8 weekends × 10 tickers = 80 forecasts scored. Forecast locked 5 minutes before the Monday open.
 
 | Measure | Value |
@@ -20,22 +20,24 @@ An alert is worth something only if the token itself moves. "Traded" buys (or se
 
 | Measure | Traded (realisable) | vs official open (paper) |
 |---|---|---|
-| Alerts | 278 of 341 (63 had no trade within 6h of the open) | 341 |
-| Worth acting on after costs | 60% | 77% |
-| Average value after costs | 0.75% | 1.08% |
+| Alerts | 214 of 277 (63 had no trade within 6h of the open) | 277 |
+| Worth acting on after costs | 67% | 85% |
+| Average value after costs | 1.03% | 1.42% |
 
 | Issuer | Alerts | Traded: won after costs | Traded: average after costs | Paper: average after costs |
 |---|---|---|---|---|
-| xStocks | 66 | 78% of 9 | 1.22% | 0.85% |
-| bStocks | 275 | 59% of 269 | 0.74% | 1.14% |
+| xStocks | 69 | 73% of 11 | 1.26% | 0.91% |
+| bStocks | 208 | 67% of 203 | 1.02% | 1.59% |
 
 ## Token data coverage
 
-| Issuer | Token-weekends | 15m candles per weekend (median) | Basis learned |
-|---|---|---|---|
-| Ondo | 80 | 288 | 80 of 80 |
-| xStocks | 80 | 0 | 0 of 80 |
-| bStocks | 80 | 219 | 0 of 80 |
+Medians per token-weekend. A basis needs at least 6 Friday-session candles that line up with an official 15-minute bar and sit within 10% of it.
+
+| Issuer | Token-weekends | Candles (Fri open → Mon open) | In Friday session | Matched to official bars | Raw token/stock gap | Basis learned |
+|---|---|---|---|---|---|---|
+| Ondo | 80 | 288 | 26 | 26 | -0.00% | 80 of 80 |
+| xStocks | 80 | 0 | 0 | 0 | – | 0 of 80 |
+| bStocks | 80 | 219 | 24 | 0 | – | 0 of 80 |
 
 ## How much weight the tokens deserve in the forecast
 
