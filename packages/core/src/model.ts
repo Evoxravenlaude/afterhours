@@ -15,8 +15,14 @@ export interface ModelConfig {
   minHalfWidth: number;
 }
 
+/**
+ * externalWeight 1: while the perp is fresh, fair value is the perp alone, and token prices only judge
+ * themselves against it (or stand in when the perp is stale). Backtest, 80 weekend opens (2026-10-08):
+ * error vs the official open 33.2 bps at weight 0.5, 31.4 at 0.7, 30.1 at 0.9, 29.6 at 1.0; tokens alone 38.7.
+ * Blending in the tokens never helped, and a fair value partly made of the prices it judges is circular.
+ */
 export const DEFAULT_MODEL: ModelConfig = {
-  externalWeight: 0.7,
+  externalWeight: 1,
   maxSignalAgeMs: 10 * 60_000,
   outlierPct: 0.1,
   hourlyVol: 0.004,

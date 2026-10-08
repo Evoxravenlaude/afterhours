@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   isOpen, lastClose, nextOpen, hoursClosed, sessionFor, isTradingDay,
-  sharePrice, tokenConsensus, fairValue, findDislocations, applyGuards, score, calibrateExternalWeight,
+  DEFAULT_MODEL, sharePrice, tokenConsensus, fairValue, findDislocations, applyGuards, score, calibrateExternalWeight,
   type TokenQuote,
 } from "../src/index.js";
 
@@ -57,7 +57,7 @@ describe("model", () => {
       ticker: "NVDA", now, lastClose: 200, lastCloseAt: T("2026-10-09T20:00:00Z"), hoursClosed: 16,
       quotes: [q("bstocks", 204), q("ondo", 204)],
       external: { source: "hyperliquid", ticker: "NVDA", price: 210, observedAt: now },
-    });
+    }, { ...DEFAULT_MODEL, externalWeight: 0.7 });
     const expected = Math.exp(Math.log(200) + 0.7 * Math.log(210 / 200) + 0.3 * Math.log(204 / 200));
     expect(fv.value).toBeCloseTo(expected, 6);
     expect(fv.low).toBeLessThan(fv.value);

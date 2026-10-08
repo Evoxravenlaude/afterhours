@@ -56,3 +56,25 @@ describe("sparse k-lines", () => {
     expect(r.alerts.some((a) => a.issuer === "xstocks" && a.side === "buy")).toBe(true);
   });
 });
+
+describe("realisable alert value", () => {
+  const after = (c: number) => [{ t: open + 15 * 60_000, c, v: 1 }];
+  const withExit = (exitPrice: number) => ({ ...input, tokens: input.tokens.map((t) => t.issuer === "xstocks"
+    ? { ...t, candles: [...t.candles, ...after(exitPrice)] } : t) });
+  it("credits an alert only when the token itself converged after the open", () => {
+    const r = backtestPeriod(withExit(205.4));
+    const o = alertOutcomes(r.alerts);
+    expect(o.traded.n).toBe(r.alerts.length);
+    expect(o.traded.avgNetPct).toBeGreaterThan(0);
+  });
+  it("shows no real win when the token keeps its discount after the open", () => {
+    const r = backtestPeriod(withExit(199));
+    const o = alertOutcomes(r.alerts);
+    expect(o.atOpen.avgNetPct).toBeGreaterThan(0);      // the paper number still looks good
+    expect(o.traded.avgNetPct).toBeLessThan(0);         // the trade didn't pay
+  });
+  it("leaves an alert unvalued when the token didn't trade after the open", () => {
+    const o = alertOutcomes(backtestPeriod(input).alerts);
+    expect(o.noExit).toBe(o.n);
+  });
+});

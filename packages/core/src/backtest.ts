@@ -18,7 +18,14 @@ export interface PeriodInput {
   external?: Candle[];
 }
 
-export interface BacktestAlert extends Dislocation { worthPct: number }
+/**
+ * `worthPct`: the alert valued against the stock's official open (what the gap was worth in theory).
+ * `exitPct`: what trading the same token actually returned: in at the alert price, out at that token's
+ * first traded price after the open (per share, same multiplier and basis). A token that keeps a
+ * persistent discount after the open shows a theoretical win and no real one; this is the honest number.
+ * Undefined when the token didn't trade within `exitWindowMs` of the open.
+ */
+export interface BacktestAlert extends Dislocation { worthPct: number; exitPct?: number; exitAt?: number }
 
 export interface PeriodResult {
   forecast: Forecast & { external?: number };
@@ -55,8 +62,8 @@ function snapshot(p: PeriodInput, t: number, maxAge: number, holdMs: number): { 
  * Forecast: our fair value `leadMs` before the open, plus the token-only variant, scored later against the official open.
  * Alerts: every `stepMs` through the closed period, deduplicated per token and side; each is valued at the open.
  */
-export function backtestPeriod(p: PeriodInput, opts: { stepMs?: number; leadMs?: number; maxCandleAgeMs?: number; holdMs?: number; model?: ModelConfig; costs?: CostModel } = {}): PeriodResult {
-  const { stepMs = 15 * 60_000, leadMs = 5 * 60_000, maxCandleAgeMs = 2 * 3_600_000, holdMs = 24 * 3_600_000, model = DEFAULT_MODEL, costs = DEFAULT_COSTS } = opts;
+export function backtestPeriod(p: PeriodInput, opts: { stepMs?: number; leadMs?: number; maxCandleAgeMs?: number; holdMs?: number; exitWindowMs?: number; model?: ModelConfig; costs?: CostModel } = {}): PeriodResult {
+  const { stepMs = 15 * 60_000, leadMs = 5 * 60_000, maxCandleAgeMs = 2 * 3_600_000, holdMs = 24 * 3_600_000, exitWindowMs = 6 * 3_600_000, model = DEFAULT_MODEL, costs = DEFAULT_COSTS } = opts;
   const tf = p.openAt - leadMs;
   const snap0 = snapshot(p, tf, maxCandleAgeMs, holdMs);
   const s = { quotes: snap0.fresh, external: snap0.external };
@@ -79,7 +86,11 @@ export function backtestPeriod(p: PeriodInput, opts: { stepMs?: number; leadMs?:
       if (!shouldRealert(seen.get(key), d, inBandAt.get(d.contract) ?? 0)) continue;
       seen.set(key, { at: d.at, netEdgePct: d.netEdgePct });
       const worthPct = d.side === "buy" ? p.actualOpen / d.sharePrice - 1 : d.sharePrice / p.actualOpen - 1;
-      alerts.push({ ...d, worthPct });
+      const ser = p.tokens.find((x) => x.contract === d.contract)!;
+      const exit = ser.candles.filter((x) => x.t > p.openAt && x.t <= p.openAt + exitWindowMs).sort((a, b) => a.t - b.t)[0];
+      const exitShare = exit ? exit.c / ser.multiplier / (ser.basis ?? 1) : undefined;
+      const exitPct = exitShare === undefined ? undefined : d.side === "buy" ? exitShare / d.sharePrice - 1 : d.sharePrice / exitShare - 1;
+      alerts.push({ ...d, worthPct, exitPct, exitAt: exit?.t });
     }
   }
 
@@ -89,14 +100,15 @@ export function backtestPeriod(p: PeriodInput, opts: { stepMs?: number; leadMs?:
   };
 }
 
-/** Summary of alert outcomes: share that were worth acting on at the open, and the average value. */
+/**
+ * Summary of alert outcomes after costs. `atOpen`: valued against the official open (theory).
+ * `traded`: valued by the token's own first price after the open (what a holder could have realised).
+ */
 export function alertOutcomes(alerts: BacktestAlert[], costPct = DEFAULT_COSTS.costPct({} as TokenQuote)) {
-  if (!alerts.length) return { n: 0, winRate: 0, avgWorthPct: 0, avgNetPct: 0 };
-  const net = alerts.map((a) => a.worthPct - costPct);
-  return {
-    n: alerts.length,
-    winRate: net.filter((x) => x > 0).length / alerts.length,
-    avgWorthPct: alerts.reduce((s, a) => s + a.worthPct, 0) / alerts.length,
-    avgNetPct: net.reduce((s, x) => s + x, 0) / alerts.length,
-  };
+  const stats = (xs: number[]) => xs.length
+    ? { n: xs.length, winRate: xs.filter((x) => x - costPct > 0).length / xs.length, avgPct: xs.reduce((a, x) => a + x, 0) / xs.length, avgNetPct: xs.reduce((a, x) => a + x - costPct, 0) / xs.length }
+    : { n: 0, winRate: 0, avgPct: 0, avgNetPct: 0 };
+  const atOpen = stats(alerts.map((a) => a.worthPct));
+  const traded = stats(alerts.flatMap((a) => (a.exitPct === undefined ? [] : [a.exitPct])));
+  return { n: alerts.length, winRate: atOpen.winRate, avgWorthPct: atOpen.avgPct, avgNetPct: atOpen.avgNetPct, atOpen, traded, noExit: alerts.length - traded.n };
 }

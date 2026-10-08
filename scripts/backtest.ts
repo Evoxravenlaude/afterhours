@@ -11,7 +11,7 @@
  * inside the window shifts that token's per-share price by the dividend yield (usually < 0.5%).
  */
 import { mkdirSync, writeFileSync } from "node:fs";
-import { backtestPeriod, alertOutcomes, score, sessionFor, isTradingDay, estimateBasis, issuerLabel, type PeriodResult, type TokenSeries } from "../packages/core/src/index.js";
+import { DEFAULT_MODEL, DEFAULT_COSTS, backtestPeriod, alertOutcomes, score, sessionFor, isTradingDay, estimateBasis, issuerLabel, type PeriodResult, type TokenSeries } from "../packages/core/src/index.js";
 import { BinanceRwa, HyperliquidStocks, dailyBars, intradayBars, type Kline, type KlineInterval } from "../packages/sources/src/index.js";
 
 const WEEKENDS = Number(process.argv[2] ?? 8);
@@ -53,6 +53,7 @@ async function tokenCandles(contract: `0x${string}`, start: number, end: number)
   throw last;
 }
 let klineCount = 0;
+const coverage = new Map<string, { candles: number[]; withBasis: number }>();
 
 async function main() {
   const tokens = new Map<string, Awaited<ReturnType<BinanceRwa["listTokens"]>>[number]>();
@@ -95,11 +96,13 @@ async function main() {
       const series: TokenSeries[] = [];
       for (const t of its) {
         try {
-          const { k, interval } = await tokenCandles(t.contract, fri.open, openAt + 3_600_000);
+          const { k, interval } = await tokenCandles(t.contract, fri.open, openAt + 6 * 3_600_000);
           const end = (x: { openTime: number; closeTime: number }) => (x.closeTime ? x.closeTime + 1 : x.openTime + interval);
           const m = mult.get(t.contract)!;
           const basis = estimateBasis(k.filter((x) => truthAt.has(end(x))).map((x) => ({ tokenShare: x.close / m, truth: truthAt.get(end(x))! })));
           if (basis) basisLog.push({ issuer: t.issuer, basis });
+          const cv = coverage.get(t.issuer) ?? { candles: [], withBasis: 0 };
+          cv.candles.push(k.filter((x) => x.openTime < openAt).length); if (basis) cv.withBasis++; coverage.set(t.issuer, cv);
           series.push({ issuer: t.issuer as TokenSeries["issuer"], symbol: t.symbol, contract: t.contract, multiplier: m, basis, candles: k.map((x) => ({ t: end(x), c: x.close })) });
           klineCount += k.length;
         } catch (e) { console.log(`  klines ${t.symbol}: ${String(e).slice(0, 120)}`); }
@@ -117,7 +120,17 @@ async function main() {
   const s = score(results.map((r) => r.forecast));
   const official = score(results.filter((r: any) => r.truth !== "hl-proxy").map((r) => r.forecast));
   const proxy = score(results.filter((r: any) => r.truth === "hl-proxy").map((r) => r.forecast));
-  const a = alertOutcomes(results.flatMap((r) => r.alerts));
+  const all = results.flatMap((r) => r.alerts);
+  const costPct = DEFAULT_COSTS.costPct({} as any);
+  const a = alertOutcomes(all, costPct);
+  const pct = (x: number) => `${(x * 100).toFixed(2)}%`;
+  const issuerAlertRows = [...new Set(all.map((x) => x.issuer))].map((i) => {
+    const o = alertOutcomes(all.filter((x) => x.issuer === i), costPct);
+    return `| ${issuerLabel(i)} | ${o.n} | ${o.traded.n ? (o.traded.winRate * 100).toFixed(0) + "% of " + o.traded.n : "–"} | ${o.traded.n ? pct(o.traded.avgNetPct) : "–"} | ${pct(o.atOpen.avgNetPct)} |`;
+  }).join("\n") || "| – | 0 | – | – | – |";
+  const coverageRows = [...coverage].map(([i, c]) => { const m = [...c.candles].sort((x, y) => x - y); return `| ${issuerLabel(i)} | ${c.candles.length} | ${m[m.length >> 1] ?? 0} | ${c.withBasis} of ${c.candles.length} |`; }).join("\n");
+  const both = results.map((r) => r.forecast).filter((f) => f.external && f.tokenOnly);
+  const sweep = [0, 0.3, 0.5, 0.7, 0.9, 1].map((w) => ({ w, bps: both.length ? both.reduce((acc, f) => acc + Math.abs(Math.exp(Math.log(f.lastClose) + w * Math.log(f.external! / f.lastClose) + (1 - w) * Math.log(f.tokenOnly! / f.lastClose)) / f.actualOpen! - 1) * 1e4, 0) / both.length : NaN }));
   mkdirSync("apps/engine/replay", { recursive: true });
   writeFileSync("apps/engine/replay/backtest.json", JSON.stringify({ at: new Date().toISOString(), weekends: periods, results }, null, 2));
   const md = `# Afterhours scorecard (backtest)
@@ -135,9 +148,34 @@ ${periods.length} weekends × ${tickers.length} tickers = ${s.n} forecasts score
 | Scored against official prints / Hyperliquid oracle proxy | ${official.n} / ${proxy.n} |
 | Our error, official prints only | ${official.n ? official.maeBps.toFixed(1) + " bps vs " + official.naiveMaeBps.toFixed(1) + " naive" : "n/a"} |
 | Token candles loaded | ${klineCount}${klineInterval ? ` (${klineInterval}, request shape "${bin.klineShape}")` : ""} |
-| Alerts raised | ${a.n} |
-| Alerts worth acting on at the open, after costs | ${(a.winRate * 100).toFixed(0)}% |
-| Average alert value at the open, after costs | ${(a.avgNetPct * 100).toFixed(2)}% |
+
+## Alerts
+
+An alert is worth something only if the token itself moves. "Traded" buys (or sells) the token at the alert price and exits at that token's first traded price after the open; "vs official open" compares the alert price with the stock's opening print, which a token holder can't always realise (a token that keeps its discount after the open shows a paper win). Costs: ${(costPct * 100).toFixed(2)}% round trip.
+
+| Measure | Traded (realisable) | vs official open (paper) |
+|---|---|---|
+| Alerts | ${a.traded.n} of ${a.n} (${a.noExit} had no trade within 6h of the open) | ${a.n} |
+| Worth acting on after costs | ${(a.traded.winRate * 100).toFixed(0)}% | ${(a.atOpen.winRate * 100).toFixed(0)}% |
+| Average value after costs | ${(a.traded.avgNetPct * 100).toFixed(2)}% | ${(a.atOpen.avgNetPct * 100).toFixed(2)}% |
+
+| Issuer | Alerts | Traded: won after costs | Traded: average after costs | Paper: average after costs |
+|---|---|---|---|---|
+${issuerAlertRows}
+
+## Token data coverage
+
+| Issuer | Token-weekends | 15m candles per weekend (median) | Basis learned |
+|---|---|---|---|
+${coverageRows}
+
+## How much weight the tokens deserve in the forecast
+
+Error vs the official open when fair value blends the perp (weight w) with the token consensus (1 − w), recomputed from this run's inputs. The live default is w = ${DEFAULT_MODEL.externalWeight}.
+
+| w | ${sweep.map((x) => x.w.toFixed(1)).join(" | ")} |
+|---|${sweep.map(() => "---").join("|")}|
+| Error (bps) | ${sweep.map((x) => x.bps.toFixed(1)).join(" | ")} |
 
 ## Issuer basis while the exchange is open
 
