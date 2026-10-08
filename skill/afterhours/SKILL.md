@@ -9,7 +9,7 @@ Tokenized stocks trade 24/7 on BNB Chain; the underlying exchange is open about 
 
 1. the last official close,
 2. Hyperliquid's xyz stock perpetuals (24/7, independent of the tokens),
-3. the bStocks, Ondo and xStocks tokens for the same stock, converted to per-share prices with each token's multiplier (BEP-677 `uiMultiplier`).
+3. the bStocks, Ondo and xStocks tokens for the same stock, converted to per-share prices with each token's multiplier (on-chain BEP-677 `uiMultiplier` for bStocks, Binance's API for the others) and its learned normal gap to the stock.
 
 It publishes a band around fair value, flags tokens outside it by more than estimated costs, and silences anything near a scheduled multiplier change or a corporate-action pause.
 
@@ -21,13 +21,13 @@ It publishes a band around fair value, flags tokens outside it by more than esti
 
 ## Endpoints
 
-Base URL: the deployed engine (e.g. `https://afterhours-production.up.railway.app`). All GET, JSON, no auth.
+Base URL: the deployed engine (`https://afterhours-production-f753.up.railway.app`). All GET, JSON, no auth.
 
 | Endpoint | Returns |
 |---|---|
 | `/api/status` | `open`, `lastClose`, `nextOpen` (ms), `mode` |
 | `/api/fair-values` | Latest fair value per ticker: `value`, `low`, `high`, `inputs.external` (perp), `inputs.tokenConsensus`, `inputs.weights`, `inputs.hoursClosed` |
-| `/api/alerts?limit=50` | Recent dislocations: `ticker`, `issuer`, `contract`, `side` (`buy` = token cheap), `edgePct`, `netEdgePct`, `suppressed` (reason, if silenced), `worthPct` (value at the open, once settled) |
+| `/api/alerts?limit=50` | Recent dislocations: `ticker`, `issuer`, `contract`, `side` (`buy` = token cheap), `edgePct`, `netEdgePct`, `suppressed` (reason, if silenced), `tradedPct` (what trading the token returned by the open, once settled), `worthPct` (value against the official open) |
 | `/api/score` | Forecast accuracy at past opens: `n`, `maeBps`, `naiveMaeBps`, `improvementPct`, `directionHitRate` |
 
 ## How to answer

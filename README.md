@@ -6,7 +6,25 @@ Tokenized US stocks on BNB Chain (bStocks, Ondo, xStocks) trade around the clock
 
 Afterhours prices each stock while the exchange is closed, tells you when a token drifts too far from that price, and scores every forecast against the official open, so you can see whether to trust it.
 
-Built for **BNB Hack: Tokenized Stocks Edition**.
+Built for **BNB Hack: Tokenized Stocks Edition**. Live at **https://afterhours-production-f753.up.railway.app** and on Telegram ([EDIT: @your_bot_username]).
+
+## Results
+
+Backtest on real data: the last 8 weekends (Aug 14 to Oct 5, 2026) for the 10 stocks with a liquid 24/7 perp and BSC tokens (AAPL, AMD, AMZN, COIN, GOOGL, META, MSFT, NVDA, PLTR, TSLA), scored against official opening prints. Full table: [`docs/SCORECARD.md`](docs/SCORECARD.md).
+
+| | Afterhours | Naive ("Friday's close") |
+|---|---|---|
+| Mean error forecasting the Monday open | **29.6 bps** | 99.2 bps |
+| Direction of gaps of 0.5% or more | **98%** | n/a |
+
+| Alerts, valued by trading the token itself | |
+|---|---|
+| Alerts with a trade after the open | 193 of 259 |
+| Worth acting on after 0.55% costs | **68%** |
+| Average after costs | **+1.19%** |
+| Weekends with a positive average | **8 of 8** |
+
+Read with care: AMD supplies a third of the alerts (without it, 67% and +0.88%); COIN is the weak spot (43%); there is no historical pool depth, so fills at size aren't proven; the 0.5% minimum edge was chosen on this same data, so live weekends from 2026-10-09 are the real test.
 
 ## What it does
 
@@ -50,7 +68,7 @@ packages/sources   Binance Web3 RWA client, Hyperliquid perps, BEP-677 reader, o
 apps/engine        tick loop, SQLite store, Telegram bot, morning card, API + web page
 skill/afterhours   agent skill
 scripts            gate.ts (live checks), backtest.ts (real-data scorecard)
-docs               DX-REPORT.md, SCORECARD.md
+docs               DX-REPORT.md, SCORECARD.md, VIDEO.md (script), SUBMISSION.md (form draft)
 ```
 
 ## Honest state

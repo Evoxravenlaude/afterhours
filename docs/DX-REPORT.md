@@ -1,12 +1,69 @@
 # Developer Experience Report: Binance Web3 API, Tokenized Securities, Agentic Wallet
 
-Written as we built Afterhours for BNB Hack: Tokenized Stocks Edition. Every entry is dated and records what we tried, what happened, and what we'd change. Nothing here was written after the fact.
+Afterhours prices tokenized US stocks on BNB Chain while the US exchange is closed, alerts when a token drifts from that price, and scores itself at every open. Building it meant pulling every BSC tokenized stock from the Web3 API, reading prices, multipliers, status and k-lines for three issuers, backtesting eight weekends, and running live on Railway from 2026-10-08. The dated log at the end is the raw record (F1–F16); the sections below organise it.
 
-## Summary of findings
+## Summary
 
-_Filled in on submission day from the log below._
+The data is good enough to build on: the backtest beat the naive forecast of the Monday open by 70% and its alerts paid on the token's own price in 8 of 8 weekends. Getting there cost about a day of discovering things the docs don't say. Five changes would have saved most of it:
 
-## Friction log
+1. **Say which issuer each row is.** bStocks are `type=3` with a `B` suffix; nothing documents it, and the published symbol examples point the other way (F1, F10).
+2. **Publish the real response schemas.** `openState`, `reasonCode`, `marketStatus` and the `offhours` block all differ from the skill docs (F8, F11).
+3. **Name the field in "illegal parameter".** A k-line window request failed for every token with no hint why; our first backtest silently ran without token data (F14).
+4. **One convention per field across issuers.** `closeTime`, `stockInfo.price` and the multiplier each behave differently for bStocks, Ondo and xStocks, and two of those differences failed silently (F2, F13, F15, F16).
+5. **Expose the underlying's last official close.** `stockInfo.price` / `referencePrice` is derived from the token for some issuers, which other builders have already mistaken for an independent price (F2).
+
+## 1. Onboarding
+
+- No API key is needed and the endpoints answered from GitHub Codespaces on the first call. That part was quick.
+- The primary documentation is a set of agent skill pages, not an API reference. Coverage claims disagree between the announcement and the skill (F1), and the unusual required headers (`Accept-Encoding: identity`, `binance-web3/1.1 (Skill)`) aren't explained (F3).
+- There are no example responses or test fixtures, so the first working code came from saving raw live responses and reading them (our `scripts/gate.ts`), not from the docs.
+
+## 2. Documentation issues
+
+- The `type` enum isn't documented; issuers were found by trial: 1 Ondo, 2 xStocks, 3 bStocks, 4 pre-IPO, 5 another chain (F1, F10).
+- Status fields as documented don't match live responses (F8, F11); market-status times looked inverted during the overnight session (F9).
+- Three multiplier fields (`sharesMultiplier`, list `multiplier`, on-chain `uiMultiplier()`) with no statement of source, precision or timing (F4).
+- Corporate-action reason codes (`cash_dividend`, `stock_split`…) are exactly what integrators need and live only in a skill page (F5).
+
+## 3. API pitfalls
+
+- `code=000002 "illegal parameter"` with no field named, for a k-line window request (`limit=300` with `startTime`/`endTime`); `limit=200` paging backwards with `endTime` works (F14).
+- K-lines skip intervals with no quote; a series is not one candle per interval (F12).
+- `closeTime` is `openTime + interval − 1` for Ondo and `openTime + interval` for bStocks and xStocks. Matching by end time failed for 160 of 240 token-weekends without an error (F16).
+- `stockInfo.price` is derived from the token for Ondo, differs for xStocks and is null for bStocks (F2, F13).
+
+## 4. AI stack feedback (Agentic Wallet, Wallet Skills)
+
+- The market-order flags live only in a nested reference file. GitHub's tree view is blocked to automated fetchers, so an agent can't list the reference files; we guessed the flags first and got them wrong (F6).
+- An agent that trusts the skill docs will misread live status responses (F8, F11) and, per two public hackathon repos, may treat a derived price as an independent one (F2). Skills are only as safe as the schema they describe.
+- `--fromTokenQty` sizes in token units; for a tokenized stock that means knowing the multiplier, which an agent can easily get wrong (F7).
+- [EDIT: add your own experience running `baw` here, or state plainly that Afterhours generates quote commands and you did not execute them against a funded wallet.]
+
+## 5. Tokenized-stock specifics
+
+- **Three issuers, three prices, three behaviours.** The same stock trades at different per-share prices on one chain. AMD's bStocks token sat about 2.9% under the stock during Friday sessions; most tokens sit within 0.1%.
+- **Ondo trades 24/5.** Its k-lines stop Friday 8pm and resume Sunday 8pm New York time, so a weekend Ondo price is a frozen Friday-evening price (F12).
+- **Only bStocks implement BEP-677 on BSC.** `uiMultiplier()` reverts on Ondo and xStocks (F15), so for two of three issuers the multiplier exists only in API fields.
+- **xStocks barely trade on BSC.** Median 0 fifteen-minute candles per weekend in our sample.
+- **The weekend gap is real and forecastable.** Hyperliquid's 24/7 stock perps forecast the Monday open with 29.6 bps mean error against 99.2 for "Friday's close" (80 opens). The tokens alone managed 31.4 bps once each token's normal gap to the stock was learned.
+
+## 6. Redesign suggestions
+
+- One token schema across issuers: `issuer`, `multiplierSource` (on-chain or API), `tradingWindow`, and `underlying.lastClose` with its timestamp.
+- One clock convention for every k-line series, and documented window rules (limit cap, allowed span, intervals).
+- Error envelopes that name the offending field in `messageDetail`.
+- An API reference generated from the live schema, with the skills linking to it, rather than skills as the primary docs.
+
+## 7. Requested capabilities
+
+1. The underlying's last official close and its time, as its own field.
+2. A forward corporate-action calendar per token (ex-date, amount, expected multiplier change), not just a pause reason on the day.
+3. Each issuer's trading window in the asset status response.
+4. Quote at size for tokenized stocks through the Web3 API (pool depth), so a monitor can check whether an alert would fill without driving the CLI.
+5. Historical multipliers per token, so a backtest can use the multiplier that applied on the day.
+6. A streaming endpoint for RWA dynamic prices.
+
+## Appendix: friction log (dated, as it happened)
 
 ### 2026-10-06: Reading the docs
 
