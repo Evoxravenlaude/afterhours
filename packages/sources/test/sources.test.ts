@@ -102,3 +102,22 @@ describe("Stooq daily bars", () => {
   });
   it("returns nothing for an error page", () => { expect(parseStooqCsv("Exceeded the daily hits limit")).toEqual([]); });
 });
+
+import { parseYahooChart, parseNasdaqHistorical } from "../src/index.js";
+describe("ground truth parsers", () => {
+  it("reads Yahoo daily bars with ET dates", () => {
+    const j = { chart: { result: [{ meta: { dataGranularity: "1d" }, timestamp: [1791207000, 1791466200],
+      indicators: { quote: [{ open: [186.5, 191.1], high: [190, 193], low: [185, 190], close: [189.2, null] }] } }] } };
+    const r = parseYahooChart(j);
+    expect(r.daily).toHaveLength(1);
+    expect(r.daily[0]).toMatchObject({ date: "2026-10-05", open: 186.5, close: 189.2 });
+  });
+  it("reads Yahoo intraday bars", () => {
+    const j = { chart: { result: [{ meta: { dataGranularity: "15m" }, timestamp: [1791207000, 1791207900], indicators: { quote: [{ open: [1, 2], close: [1.5, 2.5] }] } }] } };
+    expect(parseYahooChart(j).intraday.map((b) => b.c)).toEqual([1.5, 2.5]);
+  });
+  it("reads Nasdaq historical rows", () => {
+    const j = { data: { tradesTable: { rows: [{ date: "10/02/2026", open: "$186.50", high: "$190.00", low: "$185.00", close: "$1,189.20" }] } } };
+    expect(parseNasdaqHistorical(j)[0]).toMatchObject({ date: "2026-10-02", open: 186.5, close: 1189.2 });
+  });
+});

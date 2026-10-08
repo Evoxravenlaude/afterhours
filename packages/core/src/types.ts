@@ -10,6 +10,12 @@ export interface TokenQuote {
   tokenPrice: number;        // USD price of one raw token on chain
   multiplier: number;        // shares of underlying per raw token (1.0 = one share)
   liquidityUsd?: number;     // optional depth proxy for weighting
+  /**
+   * Steady ratio of this token's per-share price to the real stock price, learned while the exchange is open.
+   * Absorbs issuer quirks (multiplier semantics, fees, structural premium) so closed-hours moves are measured
+   * from the token's normal level, not from 1.0.
+   */
+  basis?: number;
   observedAt: number;        // unix ms
 }
 

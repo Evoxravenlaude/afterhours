@@ -14,6 +14,21 @@ export interface GuardConfig {
 
 export const DEFAULT_GUARD: GuardConfig = { preWindowMs: 24 * 3_600_000, postWindowMs: 6 * 3_600_000 };
 
+/** Codes that mean the token itself can't be traded normally. Closed-market codes are not pauses: closed hours are the point. */
+const PAUSE_CODES = new Set(["market_paused", "asset_paused", "asset_limited", "unsupported", "market_maintenance", "maintenance"]);
+const OPEN_CODES = new Set(["", "trading", "market_closed"]);
+
+/**
+ * The live API returns openState as the strings "true"/"false" with the reason in reasonCode
+ * (e.g. {"openState":"true","marketStatus":"overnight","reasonCode":"TRADING"}); the skill docs list
+ * the reasons as states. Accept both shapes.
+ */
+export function isPaused(openState: string, reasonCode: string): boolean {
+  if (PAUSE_CODES.has(reasonCode) || PAUSE_CODES.has(openState.toLowerCase())) return true;
+  if (openState === "false" && !OPEN_CODES.has(reasonCode)) return true;
+  return false;
+}
+
 export type Suppression = { ticker: string; reason: string };
 
 /**
@@ -28,10 +43,10 @@ export function suppressionFor(d: Dislocation, states: GuardState[], now: number
       return `multiplier change scheduled for ${pm.issuer} at ${new Date(pm.effectiveAt).toISOString()}`;
     }
     const st = s.assetStatus;
-    if (st && st.openState !== "TRADING" && st.openState !== "MARKET_CLOSED") {
+    if (st) {
       const code = (st.reasonCode ?? "").toLowerCase();
       if (CORPORATE_ACTION_CODES.has(code)) return `${st.issuer} paused for ${code}`;
-      if (st.issuer === d.issuer) return `${st.issuer} status ${st.openState}`;
+      if (st.issuer === d.issuer && isPaused(st.openState, code)) return `${st.issuer} status ${st.reasonCode ?? st.openState}`;
     }
   }
   return null;

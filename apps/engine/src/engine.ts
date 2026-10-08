@@ -1,5 +1,5 @@
 import {
-  fairValue, findDislocations, applyGuards, isOpen, lastClose, nextOpen, hoursClosed, score, shouldRealert,
+  fairValue, findDislocations, applyGuards, isOpen, lastClose, nextOpen, hoursClosed, score, shouldRealert, estimateBasis, sharePrice,
   type Dislocation, type FairValue,
 } from "@afterhours/core";
 import type { Store, AlertRow } from "./store.js";
@@ -28,8 +28,16 @@ export class Engine {
     const res: TickResult = { fairValues: [], alerts: [], suppressed: 0, settled: [] };
 
     for (const [ticker, s] of snap.tickers) {
-      // While the exchange is open, keep the latest spot so the close is captured when it shuts.
-      if (open && s.oraclePx) { this.store.set(`spot:${ticker}`, String(s.oraclePx)); continue; }
+      // While the exchange is open: keep the latest spot so the close is captured when it shuts,
+      // and learn each token's basis (its normal ratio to the real price) from paired observations.
+      if (open) {
+        if (s.oraclePx) {
+          this.store.set(`spot:${ticker}`, String(s.oraclePx));
+          for (const q of s.quotes) this.learnBasis(q.contract, sharePrice({ ...q, basis: undefined }) / s.oraclePx);
+        }
+        continue;
+      }
+      for (const q of s.quotes) { const b = Number(this.store.get(`basis:${q.contract}`)); if (b > 0) q.basis = b; }
       const closeKey = `close:${ticker}:${lcAt}`;
       let close = Number(this.store.get(closeKey));
       if (!close) {
@@ -65,6 +73,17 @@ export class Engine {
     // After the open: read the opening print and settle forecasts and alerts for that period.
     if (open) res.settled = await this.settle(snap);
     return res;
+  }
+
+  /** Rolling window of the last 60 open-market ratios per token; the basis is their median. */
+  private learnBasis(contract: string, ratio: number) {
+    if (!Number.isFinite(ratio)) return;
+    const key = `bratios:${contract}`;
+    const xs: number[] = JSON.parse(this.store.get(key) ?? "[]");
+    xs.push(ratio); while (xs.length > 60) xs.shift();
+    this.store.set(key, JSON.stringify(xs));
+    const b = estimateBasis(xs.map((r) => ({ tokenShare: r, truth: 1 })));
+    if (b) this.store.set(`basis:${contract}`, String(b));
   }
 
   private shouldAlert(d: Dislocation, now: number): boolean {

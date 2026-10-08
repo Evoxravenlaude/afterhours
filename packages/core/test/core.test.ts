@@ -155,3 +155,35 @@ describe("re-alert rule", () => {
     expect(shouldRealert({ at: 0, netEdgePct: 0.01 }, { at: 3 * H, netEdgePct: 0.01 }, 2 * H)).toBe(true);
   });
 });
+
+import { estimateBasis, isPaused } from "../src/index.js";
+describe("issuer basis", () => {
+  it("learns a steady discount and corrects closed-hours share prices", () => {
+    const pairs = Array.from({ length: 12 }, (_, i) => ({ tokenShare: 98.4 + (i % 3) * 0.02, truth: 100 }));
+    const b = estimateBasis(pairs)!;
+    expect(b).toBeCloseTo(0.9842, 3);
+    // A token that normally trades 1.6% under the stock is not "cheap" when it sits 1.6% under.
+    expect(sharePrice({ tokenPrice: 98.42, multiplier: 1, basis: b })).toBeCloseTo(100, 1);
+  });
+  it("refuses too few points or an absurd ratio", () => {
+    expect(estimateBasis([{ tokenShare: 99, truth: 100 }])).toBeUndefined();
+    expect(estimateBasis(Array.from({ length: 10 }, () => ({ tokenShare: 150, truth: 100 })))).toBeUndefined();
+  });
+});
+
+describe("status shapes from the live API", () => {
+  it("treats the documented live shape as trading, including overnight", () => {
+    expect(isPaused("true", "trading")).toBe(false);
+    expect(isPaused("false", "market_closed")).toBe(false);
+  });
+  it("treats pauses as pauses in either shape", () => {
+    expect(isPaused("false", "asset_paused")).toBe(true);
+    expect(isPaused("ASSET_LIMITED", "")).toBe(true);
+    expect(isPaused("false", "something_new")).toBe(true);
+  });
+  it("lets a weekend alert through when the token reports market closed", () => {
+    const d = { ticker: "NVDA", issuer: "xstocks" as const, symbol: "x", contract: "0x0000000000000000000000000000000000000001" as const, sharePrice: 196, fairValue: 200, edgePct: -0.02, netEdgePct: 0.0145, side: "buy" as const, at: 0 };
+    expect(applyGuards([d], [{ ticker: "NVDA", assetStatus: { issuer: "xstocks", openState: "false", reasonCode: "MARKET_CLOSED" } }], 0).alerts).toHaveLength(1);
+    expect(applyGuards([d], [{ ticker: "NVDA", assetStatus: { issuer: "ondo", openState: "false", reasonCode: "cash_dividend" } }], 0).alerts).toHaveLength(0);
+  });
+});

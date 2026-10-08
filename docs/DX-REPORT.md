@@ -36,3 +36,20 @@ _Suggestion:_ put one complete quote example and one swap example in SKILL.md it
 
 **F7. Quotes are sized in the from-token, never in USD.**
 `--fromTokenQty` is a token quantity. For a sell of a tokenized stock, the integrator must convert a dollar amount into raw token units, which means knowing the multiplier. A `--fromUsd` option, or a documented example with a tokenized stock, would remove a common sizing mistake.
+
+### 2026-10-08: First live run (gate script, GitHub Codespaces)
+
+**F1 (confirmed). Issuer coverage is discoverable only by trial.**
+`type=1` returned 1,366 Ondo tokens and `type=2` returned 269 xStocks across all chains; `type=3/4/5` returned 91, 4 and 194 tokens whose symbols follow neither convention; `type=0` returned nothing. 588 tokens are on BSC. None matched the bStocks symbol convention, so either bStocks aren't in this endpoint or they use a symbol pattern the docs don't describe.
+_Suggestion:_ an `issuer` field on every row, and a documented enum for `type`.
+
+**F2 (confirmed). `stockInfo.price` is derived from the token for Ondo.**
+For EEMon, `tokenPrice / sharesMultiplier / stockInfo.price` was exactly 1.00000. For AAPLx (xStocks) the same ratio was 0.98435, so the field is not consistent across issuers either. An integrator can't tell which case they're in.
+_Suggestion:_ document the source of `stockInfo.price` per issuer, or expose the independent last official close as a separate field.
+
+**F8. Status values differ from the skill docs.**
+Docs list `TRADING`, `MARKET_CLOSED`, `ASSET_PAUSED`… as states. Live responses return `openState` as the string `"true"`/`"false"`, put `TRADING` in `reasonCode`, and add a `marketStatus` of `"overnight"` that isn't documented. Our first guard treated the documented states as `openState` values and would have missed pauses.
+_Suggestion:_ publish the real response schema with examples for regular, overnight, closed, paused and corporate-action cases.
+
+**F9. Market status times look inverted.**
+The market status endpoint returned `nextOpenTime` 1791446460000 and `nextCloseTime` 1791446100000 (close six minutes before open) during the overnight session. Possibly the gap between overnight and pre-market sessions, but undocumented.

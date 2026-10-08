@@ -24,10 +24,25 @@ export const DEFAULT_MODEL: ModelConfig = {
   minHalfWidth: 0.0025,
 };
 
-/** Price of one underlying share implied by a token: one raw token represents `multiplier` shares. */
-export function sharePrice(q: Pick<TokenQuote, "tokenPrice" | "multiplier">): number {
+/**
+ * Price of one underlying share implied by a token: one raw token represents `multiplier` shares,
+ * corrected by the token's learned basis (its normal premium or discount while the exchange is open).
+ */
+export function sharePrice(q: Pick<TokenQuote, "tokenPrice" | "multiplier"> & { basis?: number }): number {
   if (!(q.multiplier > 0)) throw new Error("multiplier must be > 0");
-  return q.tokenPrice / q.multiplier;
+  return q.tokenPrice / q.multiplier / (q.basis && q.basis > 0 ? q.basis : 1);
+}
+
+/**
+ * Learn a token's basis from paired observations taken while the exchange is open:
+ * the median ratio of the token's per-share price to the real price. Needs enough points and a sane result.
+ */
+export function estimateBasis(pairs: { tokenShare: number; truth: number }[], opts: { minPoints?: number; maxDeviation?: number } = {}): number | undefined {
+  const { minPoints = 6, maxDeviation = 0.1 } = opts;
+  const r = pairs.filter((p) => p.tokenShare > 0 && p.truth > 0).map((p) => p.tokenShare / p.truth).sort((a, b) => a - b);
+  if (r.length < minPoints) return undefined;
+  const m = r.length % 2 ? r[r.length >> 1] : (r[r.length / 2 - 1] + r[r.length / 2]) / 2;
+  return Math.abs(m - 1) <= maxDeviation ? m : undefined;
 }
 
 function weightedMedian(values: { v: number; w: number }[]): number {

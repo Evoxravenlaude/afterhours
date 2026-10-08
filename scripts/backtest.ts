@@ -2,21 +2,21 @@
  * Backtest over past weekends with real data. Run with internet access:
  *   npx tsx scripts/backtest.ts [weekends=8]
  *
- * Truth: Stooq daily bars (official Friday close, Monday open).
+ * Truth: official Friday close and Monday open (Yahoo chart API, Nasdaq fallback, Stooq last).
  * Inputs: Binance token k-lines (15m) per issuer, Hyperliquid xyz perp candles (15m).
+ * Basis: each token's normal ratio to the real price, learned from Friday's session against 15-minute bars.
  * Output: docs/SCORECARD.md and apps/engine/replay/backtest.json (also used by replay mode).
  *
  * Known approximation: multipliers are taken at today's value for all past weekends. A dividend
  * inside the window shifts that token's per-share price by the dividend yield (usually < 0.5%).
  */
 import { mkdirSync, writeFileSync } from "node:fs";
-import { backtestPeriod, alertOutcomes, score, sessionFor, isTradingDay, type PeriodResult, type TokenSeries } from "../packages/core/src/index.js";
-import { BinanceRwa, HyperliquidStocks, BscScaledUi, stooqDaily } from "../packages/sources/src/index.js";
+import { backtestPeriod, alertOutcomes, score, sessionFor, isTradingDay, estimateBasis, issuerLabel, type PeriodResult, type TokenSeries } from "../packages/core/src/index.js";
+import { BinanceRwa, HyperliquidStocks, dailyBars, intradayBars } from "../packages/sources/src/index.js";
 
 const WEEKENDS = Number(process.argv[2] ?? 8);
 const bin = new BinanceRwa();
 const hl = new HyperliquidStocks();
-const bsc = new BscScaledUi();
 
 function addDays(d: string, n: number) { const t = new Date(d + "T12:00:00Z"); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); }
 
@@ -39,46 +39,59 @@ function weekendPeriods(n: number): { closeDate: string; openDate: string }[] {
 
 async function main() {
   const tokens = new Map<string, Awaited<ReturnType<BinanceRwa["listTokens"]>>[number]>();
-  for (const type of [undefined, 1, 2, 3]) { try { for (const t of await bin.listTokens(type)) tokens.set(t.contract, t); } catch {} }
-  const bscTokens = [...tokens.values()].filter((t) => (t.chainId === "56" || !t.chainId) && t.issuer !== "unknown");
+  for (const type of [undefined, 1, 2, 3, 4, 5]) { try { for (const t of await bin.listTokens(type)) tokens.set(`${t.chainId}:${t.contract}`, t); } catch {} }
+  const bscTokens = [...tokens.values()].filter((t) => t.chainId === "56" && t.issuer !== "unknown");
   const perps = new Map((await hl.contexts()).filter((c) => (c.dayNtlVlm ?? 0) > 250_000).map((c) => [c.ticker, c.name]));
-  const tickers = [...new Set(bscTokens.map((t) => t.ticker))].filter((t) => perps.has(t));
+  const only = process.env.TICKERS?.split(",").map((x) => x.trim().toUpperCase());
+  const tickers = [...new Set(bscTokens.map((t) => t.ticker))].filter((t) => perps.has(t) && (!only || only.includes(t)));
   console.log(`${bscTokens.length} BSC tokens; ${tickers.length} tickers also have a liquid Hyperliquid perp: ${tickers.join(", ")}`);
 
   const periods = weekendPeriods(WEEKENDS);
   const results: (PeriodResult & { closeDate: string; openDate: string })[] = [];
+  const basisLog: { issuer: string; basis: number }[] = [];
+  const skipped: string[] = [];
 
   for (const ticker of tickers) {
-    let bars; try { bars = new Map((await stooqDaily(ticker)).map((b) => [b.date, b])); } catch (e) { console.log(`skip ${ticker}: ${e}`); continue; }
+    let truth; try { truth = await dailyBars(ticker); } catch (e) { skipped.push(ticker); console.log(`skip ${ticker}: ${String(e).slice(0, 160)}`); continue; }
+    const bars = new Map(truth.bars.map((b) => [b.date, b]));
+    const intraday = await intradayBars(ticker).catch(() => []);
     const its = bscTokens.filter((t) => t.ticker === ticker);
+    // Multipliers from the Binance API (on-chain BEP-677 reads failed for these issuers in the gate run).
     const mult = new Map<string, number>();
-    for (const t of its) mult.set(t.contract, (await bsc.state(t.contract))?.current ?? t.multiplier ?? 1);
+    await Promise.all(its.map(async (t) => mult.set(t.contract, (await bin.dynamic(t.contract).catch(() => null))?.sharesMultiplier ?? t.multiplier ?? 1)));
 
     for (const { closeDate, openDate } of periods) {
       const c = bars.get(closeDate), o = bars.get(openDate);
       if (!c || !o) continue;
-      const lastCloseAt = sessionFor(closeDate)!.close, openAt = sessionFor(openDate)!.open;
+      const fri = sessionFor(closeDate)!, lastCloseAt = fri.close, openAt = sessionFor(openDate)!.open;
+      const truthAt = new Map(intraday.filter((b) => b.t >= fri.open && b.t < fri.close).map((b) => [b.t, b.c]));
       const series: TokenSeries[] = [];
       for (const t of its) {
         try {
-          const k = await bin.klines(t.contract, "15m", 300, { startTime: lastCloseAt - 3_600_000, endTime: openAt + 3_600_000 });
-          series.push({ issuer: t.issuer as TokenSeries["issuer"], symbol: t.symbol, contract: t.contract, multiplier: mult.get(t.contract)!, candles: k.map((x) => ({ t: x.closeTime || x.openTime, c: x.close })) });
+          const k = await bin.klines(t.contract, "15m", 300, { startTime: fri.open, endTime: openAt + 3_600_000 });
+          const m = mult.get(t.contract)!;
+          const basis = estimateBasis(k.filter((x) => truthAt.has(x.openTime)).map((x) => ({ tokenShare: x.close / m, truth: truthAt.get(x.openTime)! })));
+          if (basis) basisLog.push({ issuer: t.issuer, basis });
+          series.push({ issuer: t.issuer as TokenSeries["issuer"], symbol: t.symbol, contract: t.contract, multiplier: m, basis, candles: k.map((x) => ({ t: x.closeTime || x.openTime + 15 * 60_000, c: x.close })) });
         } catch (e) { console.log(`  klines ${t.symbol}: ${String(e).slice(0, 120)}`); }
       }
-      const ext = (await hl.candles(perps.get(ticker)!, "15m", lastCloseAt - 3_600_000, openAt + 3_600_000)).map((x) => ({ t: x.t + 15 * 60_000, c: x.c, v: x.v * x.c }));
+      const ext = (await hl.candles(perps.get(ticker)!, "15m", lastCloseAt - 3_600_000, openAt + 3_600_000).catch(() => [])).map((x) => ({ t: x.t + 15 * 60_000, c: x.c, v: x.v * x.c }));
       const r = backtestPeriod({ ticker, lastClose: c.close, lastCloseAt, openAt, actualOpen: o.open, tokens: series, external: ext });
       results.push({ ...r, closeDate, openDate });
-      console.log(`${ticker} ${closeDate}→${openDate}: close ${c.close} open ${o.open} | ours ${r.forecast.fairValue.toFixed(2)} tokens ${r.forecast.tokenOnly?.toFixed(2) ?? "-"} perp ${r.forecast.external?.toFixed(2) ?? "-"} | ${r.alerts.length} alerts`);
+      console.log(`${ticker} ${closeDate}→${openDate} [${truth.source}]: close ${c.close} open ${o.open} | ours ${r.forecast.fairValue.toFixed(2)} tokens ${r.forecast.tokenOnly?.toFixed(2) ?? "-"} perp ${r.forecast.external?.toFixed(2) ?? "-"} | bases ${series.map((s) => s.basis?.toFixed(4) ?? "-").join("/")} | ${r.alerts.length} alerts`);
     }
   }
 
+  const issuerBasis = new Map<string, number[]>();
+  for (const b of basisLog) issuerBasis.set(b.issuer, [...(issuerBasis.get(b.issuer) ?? []), b.basis]);
+  const basisRows = [...issuerBasis].map(([i, xs]) => { const s = [...xs].sort((a, b) => a - b); return `| ${issuerLabel(i)} | ${xs.length} | ${((s[s.length >> 1] - 1) * 100).toFixed(2)}% | ${((s[0] - 1) * 100).toFixed(2)}% to ${((s[s.length - 1] - 1) * 100).toFixed(2)}% |`; }).join("\n");
   const s = score(results.map((r) => r.forecast));
   const a = alertOutcomes(results.flatMap((r) => r.alerts));
   mkdirSync("apps/engine/replay", { recursive: true });
   writeFileSync("apps/engine/replay/backtest.json", JSON.stringify({ at: new Date().toISOString(), weekends: periods, results }, null, 2));
   const md = `# Afterhours scorecard (backtest)
 
-Generated ${new Date().toISOString()} from real data: Binance token k-lines, Hyperliquid xyz perp candles, Stooq official daily bars.
+Generated ${new Date().toISOString()} from real data: Binance token k-lines, Hyperliquid xyz perp candles, official daily bars (Yahoo / Nasdaq).
 ${periods.length} weekends × ${tickers.length} tickers = ${s.n} forecasts scored. Forecast locked 5 minutes before the Monday open.
 
 | Measure | Value |
@@ -92,7 +105,15 @@ ${periods.length} weekends × ${tickers.length} tickers = ${s.n} forecasts score
 | Alerts worth acting on at the open, after costs | ${(a.winRate * 100).toFixed(0)}% |
 | Average alert value at the open, after costs | ${(a.avgNetPct * 100).toFixed(2)}% |
 
-Approximation: multipliers are today's values for every past weekend.
+## Issuer basis while the exchange is open
+
+How far each issuer's tokens normally sit from the real stock price (per share, after the multiplier), measured on Friday sessions. Afterhours measures closed-hours moves from this level, not from zero.
+
+| Issuer | Token-weekends | Median | Range |
+|---|---|---|---|
+${basisRows || "| n/a | 0 | – | – |"}
+
+Approximation: multipliers are today's values for every past weekend.${skipped.length ? `\nSkipped (no official bars): ${skipped.join(", ")}.` : ""}
 `;
   writeFileSync("docs/SCORECARD.md", md);
   console.log("\n" + md);

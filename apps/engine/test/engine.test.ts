@@ -78,3 +78,16 @@ describe("delivery", () => {
     expect(png.subarray(1, 4).toString()).toBe("PNG");
   });
 });
+
+describe("live basis learning", () => {
+  it("learns a token's steady discount while open and stops it from alerting while closed", async () => {
+    const store = new Store(":memory:");
+    const e = new Engine(store, config);
+    // xStocks normally sits 1.6% under the stock. Learn that across a Friday session.
+    for (let i = 0; i < 10; i++) await e.tick(snap(T("2026-10-09T18:00:00Z") + i * 60_000, 200 * 0.984, 200));
+    expect(Number(store.get("basis:0x0000000000000000000000000000000000000003"))).toBeCloseTo(0.984, 3);
+    // Saturday: xStocks still 1.6% under, everyone else at 205. Without basis this would alert.
+    const r = await e.tick(snap(T("2026-10-10T12:00:00Z"), 205 * 0.984));
+    expect(r.alerts).toHaveLength(0);
+  });
+});

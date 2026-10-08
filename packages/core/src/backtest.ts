@@ -5,7 +5,7 @@ import { shouldRealert } from "./guard.js";
 
 export interface Candle { t: number; c: number; v?: number }
 
-export interface TokenSeries { issuer: Issuer; symbol: string; contract: `0x${string}`; multiplier: number; candles: Candle[] }
+export interface TokenSeries { issuer: Issuer; symbol: string; contract: `0x${string}`; multiplier: number; basis?: number; candles: Candle[] }
 
 export interface PeriodInput {
   ticker: string;
@@ -35,7 +35,7 @@ function snapshot(p: PeriodInput, t: number, maxAge: number): { quotes: TokenQuo
   const quotes: TokenQuote[] = [];
   for (const s of p.tokens) {
     const k = at(s.candles, t, maxAge);
-    if (k) quotes.push({ issuer: s.issuer, symbol: s.symbol, ticker: p.ticker, contract: s.contract, tokenPrice: k.c, multiplier: s.multiplier, liquidityUsd: k.v, observedAt: k.t });
+    if (k) quotes.push({ issuer: s.issuer, symbol: s.symbol, ticker: p.ticker, contract: s.contract, tokenPrice: k.c, multiplier: s.multiplier, basis: s.basis, liquidityUsd: k.v, observedAt: k.t });
   }
   const e = p.external ? at(p.external, t, maxAge) : undefined;
   return { quotes, external: e ? { source: "hyperliquid", ticker: p.ticker, price: e.c, observedAt: e.t } : undefined };

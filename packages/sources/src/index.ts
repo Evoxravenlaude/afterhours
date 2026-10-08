@@ -3,3 +3,4 @@ export * from "./binance.js";
 export * from "./hyperliquid.js";
 export * from "./bsc.js";
 export * from "./stooq.js";
+export * from "./truth.js";
