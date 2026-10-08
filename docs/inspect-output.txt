@@ -1,0 +1,41 @@
+RPC https://bsc-dataseed.bnbchain.org
+  block 126408731
+
+type=none: 1938 tokens; by chain {"1":457,"56":684,"4663":194,"8453":13,"CT_501":590}
+  BSC samples: EEMon(EEM,ondo) MRNAon(MRNA,ondo) OXYon(OXY,ondo) AALon(AAL,ondo) ORCLon(ORCL,ondo) NKEon(NKE,ondo) NVOon(NVO,ondo) AGGon(AGG,ondo)
+
+type=1: 1366 tokens; by chain {"1":457,"56":458,"CT_501":451}
+  BSC samples: EEMon(EEM,ondo) MRNAon(MRNA,ondo) OXYon(OXY,ondo) AALon(AAL,ondo) ORCLon(ORCL,ondo) NKEon(NKE,ondo) NVOon(NVO,ondo) AGGon(AGG,ondo)
+
+type=2: 269 tokens; by chain {"56":130,"CT_501":139}
+  BSC samples: AAPLx(AAPL,xstocks) ABBVx(ABBV,xstocks) ABTx(ABT,xstocks) ACNx(ACN,xstocks) ADBEx(ADBE,xstocks) AMBRx(AMBR,xstocks) AMDx(AMD,xstocks) AMZNx(AMZN,xstocks)
+
+type=3: 91 tokens; by chain {"56":91}
+  BSC samples: MUB(MU,bstocks) CRCLB(CRCL,bstocks) NVDAB(NVDA,bstocks) SNDKB(SNDK,bstocks) TSLAB(TSLA,bstocks) SPCXB(SPCX,bstocks) INTCB(INTC,bstocks) EWYB(EWY,bstocks)
+
+type=4: 4 tokens; by chain {"56":4}
+  BSC samples: xKLSH(KLSH,unknown) xOPAI(OPENAI,unknown) xSPCX(SPCX,unknown) pPOLY(POLYMARKET,unknown)
+
+type=5: 194 tokens; by chain {"4663":194}
+  BSC samples: 
+
+BSC tokens with unknown issuer (5):
+  xKLSH	ticker=KLSH	type=4	0xe0cbb7ffc0883810569d84d78f02bbcb747cfe43
+  xOPAI	ticker=OPENAI	type=4	0x7ddef360f3c2db4cc41c3967984fefa2598cc9a6
+  xSPCX	ticker=SPCX	type=4	0x05353dabf163fb2fec87f9e0f00f94eae4ac1631
+  BNC4	ticker=BNC	type=9	0x7c8d5502b544ddaf8852fc46d1174e34876d545c
+  pPOLY	ticker=POLYMARKET	type=4	0x1d80392d12caaaf9e333bb0bb7f021eacf297fe6
+
+On-chain probes (3 per issuer):
+  [ondo] EEMon 0x00c81d35eddf44c75d4db9e07bdcdc236eb0ebcf: code=1650 name=iShares MSCI Emerging Markets ETF (Ondo Tokenized) decimals=18 uiMultiplier ERR The contract function "uiMultiplier" reverted with the follo erc165=true
+  [ondo] MRNAon 0x01486675da0764ee780ea7cb65c33062e9b2d28c: code=1650 name=Moderna (Ondo Tokenized) decimals=18 uiMultiplier ERR The contract function "uiMultiplier" reverted with the follo erc165=true
+  [ondo] OXYon 0x01b5a4ac600be98448dbefbb78bcdf38262552cc: code=1650 name=Occidental Petroleum (Ondo Tokenized) decimals=18 uiMultiplier ERR The contract function "uiMultiplier" reverted with the follo erc165=true
+  [xstocks] AAPLx 0x9d275685dc284c8eb1c79f6aba7a63dc75ec890a: code=4278 name=Apple xStock decimals=18 uiMultiplier ERR The contract function "uiMultiplier" reverted with the follo erc165=n/a
+  [xstocks] ABBVx 0xfbf2398df672cee4afcc2a4a733222331c742a6a: code=4278 name=AbbVie xStock decimals=18 uiMultiplier ERR The contract function "uiMultiplier" reverted with the follo erc165=n/a
+  [xstocks] ABTx 0x89233399708c18ac6887f90a2b4cd8ba5fedd06e: code=4278 name=Abbott xStock decimals=18 uiMultiplier ERR The contract function "uiMultiplier" reverted with the follo erc165=n/a
+  [bstocks] MUB 0xcdf2f3e0fa43c47a6662a91c9e4a7c5f69762699: code=568 name=Micron Technology Inc decimals=18 uiMultiplier=1000107512568805603 erc165=true
+  [bstocks] CRCLB 0x80f3d493ebce97e343c53d29a137942416b4ffc0: code=568 name=Circle Internet Group Inc. decimals=18 uiMultiplier=1000000000000000000 erc165=true
+  [bstocks] NVDAB 0x02fca66c1d1afb4e2a7884261eb00f63598a7436: code=568 name=NVIDIA Corp decimals=18 uiMultiplier=1000778223752807865 erc165=true
+  [unknown] xKLSH 0xe0cbb7ffc0883810569d84d78f02bbcb747cfe43: code=262 name=Paimon Tradable Kalshi SPV Token decimals=18 uiMultiplier ERR The contract function "uiMultiplier" reverted with the follo erc165=true
+  [unknown] xOPAI 0x7ddef360f3c2db4cc41c3967984fefa2598cc9a6: code=262 name=Paimon Tradable OpenAI SPV Token decimals=18 uiMultiplier ERR The contract function "uiMultiplier" reverted with the follo erc165=true
+  [unknown] xSPCX 0x05353dabf163fb2fec87f9e0f00f94eae4ac1631: code=262 name=Paimon Tradable SpaceX SPV Token decimals=18 uiMultiplier ERR The contract function "uiMultiplier" reverted with the follo erc165=true

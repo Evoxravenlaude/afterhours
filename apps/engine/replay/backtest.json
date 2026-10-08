@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-08T07:20:32.123Z",
+  "at": "2026-10-08T08:05:38.317Z",
   "weekends": [
     {
       "closeDate": "2026-10-02",
@@ -34,5 +34,1206 @@
       "openDate": "2026-08-17"
     }
   ],
-  "results": []
+  "results": [
+    {
+      "forecast": {
+        "ticker": "GOOGL",
+        "periodStart": 1790971200000,
+        "openAt": 1791207000000,
+        "lastClose": 343.5,
+        "fairValue": 342.58000000000015,
+        "external": 342.58,
+        "actualOpen": 342.5899963378906
+      },
+      "alerts": [],
+      "closeDate": "2026-10-02",
+      "openDate": "2026-10-05",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "GOOGL",
+        "periodStart": 1790366400000,
+        "openAt": 1790602200000,
+        "lastClose": 343.9200134277344,
+        "fairValue": 341.5699999999998,
+        "external": 341.57,
+        "actualOpen": 340.70001220703125
+      },
+      "alerts": [],
+      "closeDate": "2026-09-25",
+      "openDate": "2026-09-28",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "GOOGL",
+        "periodStart": 1789761600000,
+        "openAt": 1789997400000,
+        "lastClose": 349.5400085449219,
+        "fairValue": 350.7599999999998,
+        "external": 350.76,
+        "actualOpen": 350.6400146484375
+      },
+      "alerts": [],
+      "closeDate": "2026-09-18",
+      "openDate": "2026-09-21",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "GOOGL",
+        "periodStart": 1789156800000,
+        "openAt": 1789392600000,
+        "lastClose": 338.5,
+        "fairValue": 342.5899999999998,
+        "external": 342.59,
+        "actualOpen": 343.1199951171875
+      },
+      "alerts": [],
+      "closeDate": "2026-09-11",
+      "openDate": "2026-09-14",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "GOOGL",
+        "periodStart": 1788552000000,
+        "openAt": 1788874200000,
+        "lastClose": 338.4599914550781,
+        "fairValue": 336.54,
+        "external": 336.54,
+        "actualOpen": 335.4200134277344
+      },
+      "alerts": [],
+      "closeDate": "2026-09-04",
+      "openDate": "2026-09-08",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "GOOGL",
+        "periodStart": 1787947200000,
+        "openAt": 1788183000000,
+        "lastClose": 346.5899963378906,
+        "fairValue": 344.51999999999987,
+        "external": 344.52,
+        "actualOpen": 343.8299865722656
+      },
+      "alerts": [],
+      "closeDate": "2026-08-28",
+      "openDate": "2026-08-31",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "GOOGL",
+        "periodStart": 1787342400000,
+        "openAt": 1787578200000,
+        "lastClose": 344.82000732421875,
+        "fairValue": 342.85000000000014,
+        "external": 342.85,
+        "actualOpen": 343.6199951171875
+      },
+      "alerts": [],
+      "closeDate": "2026-08-21",
+      "openDate": "2026-08-24",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "GOOGL",
+        "periodStart": 1786737600000,
+        "openAt": 1786973400000,
+        "lastClose": 345.8999938964844,
+        "fairValue": 347.28999999999996,
+        "external": 347.29,
+        "actualOpen": 346.2699890136719
+      },
+      "alerts": [],
+      "closeDate": "2026-08-14",
+      "openDate": "2026-08-17",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "TSLA",
+        "periodStart": 1790971200000,
+        "openAt": 1791207000000,
+        "lastClose": 370.5899963378906,
+        "fairValue": 369.23999999999984,
+        "external": 369.24,
+        "actualOpen": 369
+      },
+      "alerts": [],
+      "closeDate": "2026-10-02",
+      "openDate": "2026-10-05",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "TSLA",
+        "periodStart": 1790366400000,
+        "openAt": 1790602200000,
+        "lastClose": 372.1099853515625,
+        "fairValue": 370.1600000000002,
+        "external": 370.16,
+        "actualOpen": 368.05999755859375
+      },
+      "alerts": [],
+      "closeDate": "2026-09-25",
+      "openDate": "2026-09-28",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "TSLA",
+        "periodStart": 1789761600000,
+        "openAt": 1789997400000,
+        "lastClose": 364.2699890136719,
+        "fairValue": 370.3699999999999,
+        "external": 370.37,
+        "actualOpen": 371.6400146484375
+      },
+      "alerts": [],
+      "closeDate": "2026-09-18",
+      "openDate": "2026-09-21",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "TSLA",
+        "periodStart": 1789156800000,
+        "openAt": 1789392600000,
+        "lastClose": 365.44000244140625,
+        "fairValue": 358.61000000000007,
+        "external": 358.61,
+        "actualOpen": 359.7799987792969
+      },
+      "alerts": [],
+      "closeDate": "2026-09-11",
+      "openDate": "2026-09-14",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "TSLA",
+        "periodStart": 1788552000000,
+        "openAt": 1788874200000,
+        "lastClose": 354.0799865722656,
+        "fairValue": 356.7100000000001,
+        "external": 356.71,
+        "actualOpen": 357.1000061035156
+      },
+      "alerts": [],
+      "closeDate": "2026-09-04",
+      "openDate": "2026-09-08",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "TSLA",
+        "periodStart": 1787947200000,
+        "openAt": 1788183000000,
+        "lastClose": 348.75,
+        "fairValue": 346.44999999999993,
+        "external": 346.45,
+        "actualOpen": 347.2099914550781
+      },
+      "alerts": [],
+      "closeDate": "2026-08-28",
+      "openDate": "2026-08-31",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "TSLA",
+        "periodStart": 1787342400000,
+        "openAt": 1787578200000,
+        "lastClose": 362.8599853515625,
+        "fairValue": 361.98000000000013,
+        "external": 361.98,
+        "actualOpen": 361.4100036621094
+      },
+      "alerts": [],
+      "closeDate": "2026-08-21",
+      "openDate": "2026-08-24",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "TSLA",
+        "periodStart": 1786737600000,
+        "openAt": 1786973400000,
+        "lastClose": 342.2699890136719,
+        "fairValue": 341.28999999999996,
+        "external": 341.29,
+        "actualOpen": 340.69000244140625
+      },
+      "alerts": [],
+      "closeDate": "2026-08-14",
+      "openDate": "2026-08-17",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AAPL",
+        "periodStart": 1790971200000,
+        "openAt": 1791207000000,
+        "lastClose": 333.69000244140625,
+        "fairValue": 332.28,
+        "external": 332.28,
+        "actualOpen": 332.82000732421875
+      },
+      "alerts": [],
+      "closeDate": "2026-10-02",
+      "openDate": "2026-10-05",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AAPL",
+        "periodStart": 1790366400000,
+        "openAt": 1790602200000,
+        "lastClose": 341.07000732421875,
+        "fairValue": 340.26999999999987,
+        "external": 340.27,
+        "actualOpen": 340.3699951171875
+      },
+      "alerts": [],
+      "closeDate": "2026-09-25",
+      "openDate": "2026-09-28",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AAPL",
+        "periodStart": 1789761600000,
+        "openAt": 1789997400000,
+        "lastClose": 336.1300048828125,
+        "fairValue": 335.77000000000004,
+        "external": 335.77,
+        "actualOpen": 335.2799987792969
+      },
+      "alerts": [],
+      "closeDate": "2026-09-18",
+      "openDate": "2026-09-21",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AAPL",
+        "periodStart": 1789156800000,
+        "openAt": 1789392600000,
+        "lastClose": 332.2699890136719,
+        "fairValue": 333.69000000000017,
+        "external": 333.69,
+        "actualOpen": 334.7900085449219
+      },
+      "alerts": [],
+      "closeDate": "2026-09-11",
+      "openDate": "2026-09-14",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AAPL",
+        "periodStart": 1788552000000,
+        "openAt": 1788874200000,
+        "lastClose": 319.9700012207031,
+        "fairValue": 318,
+        "external": 318,
+        "actualOpen": 317.1000061035156
+      },
+      "alerts": [],
+      "closeDate": "2026-09-04",
+      "openDate": "2026-09-08",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AAPL",
+        "periodStart": 1787947200000,
+        "openAt": 1788183000000,
+        "lastClose": 319.70001220703125,
+        "fairValue": 320.07,
+        "external": 320.07,
+        "actualOpen": 319.6000061035156
+      },
+      "alerts": [],
+      "closeDate": "2026-08-28",
+      "openDate": "2026-08-31",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AAPL",
+        "periodStart": 1787342400000,
+        "openAt": 1787578200000,
+        "lastClose": 309.3500061035156,
+        "fairValue": 311.0599999999999,
+        "external": 311.06,
+        "actualOpen": 311.4700012207031
+      },
+      "alerts": [],
+      "closeDate": "2026-08-21",
+      "openDate": "2026-08-24",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AAPL",
+        "periodStart": 1786737600000,
+        "openAt": 1786973400000,
+        "lastClose": 305.92999267578125,
+        "fairValue": 306.62,
+        "external": 306.62,
+        "actualOpen": 306.2099914550781
+      },
+      "alerts": [],
+      "closeDate": "2026-08-14",
+      "openDate": "2026-08-17",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMZN",
+        "periodStart": 1790971200000,
+        "openAt": 1791207000000,
+        "lastClose": 251.52000427246094,
+        "fairValue": 251.6000000000001,
+        "external": 251.6,
+        "actualOpen": 250.19000244140625
+      },
+      "alerts": [],
+      "closeDate": "2026-10-02",
+      "openDate": "2026-10-05",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMZN",
+        "periodStart": 1790366400000,
+        "openAt": 1790602200000,
+        "lastClose": 249.6699981689453,
+        "fairValue": 247.63999999999996,
+        "external": 247.64,
+        "actualOpen": 246.6300048828125
+      },
+      "alerts": [],
+      "closeDate": "2026-09-25",
+      "openDate": "2026-09-28",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMZN",
+        "periodStart": 1789761600000,
+        "openAt": 1789997400000,
+        "lastClose": 253.7100067138672,
+        "fairValue": 255.15999999999994,
+        "external": 255.16,
+        "actualOpen": 256.3999938964844
+      },
+      "alerts": [],
+      "closeDate": "2026-09-18",
+      "openDate": "2026-09-21",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMZN",
+        "periodStart": 1789156800000,
+        "openAt": 1789392600000,
+        "lastClose": 256.7799987792969,
+        "fairValue": 253.09999999999997,
+        "external": 253.1,
+        "actualOpen": 253.14999389648438
+      },
+      "alerts": [],
+      "closeDate": "2026-09-11",
+      "openDate": "2026-09-14",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMZN",
+        "periodStart": 1788552000000,
+        "openAt": 1788874200000,
+        "lastClose": 258.510009765625,
+        "fairValue": 256.88999999999993,
+        "external": 256.89,
+        "actualOpen": 256.67999267578125
+      },
+      "alerts": [],
+      "closeDate": "2026-09-04",
+      "openDate": "2026-09-08",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMZN",
+        "periodStart": 1787947200000,
+        "openAt": 1788183000000,
+        "lastClose": 266.42999267578125,
+        "fairValue": 264.14,
+        "external": 264.14,
+        "actualOpen": 263.8299865722656
+      },
+      "alerts": [],
+      "closeDate": "2026-08-28",
+      "openDate": "2026-08-31",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMZN",
+        "periodStart": 1787342400000,
+        "openAt": 1787578200000,
+        "lastClose": 258.6300048828125,
+        "fairValue": 258.6800000000001,
+        "external": 258.68,
+        "actualOpen": 259.6000061035156
+      },
+      "alerts": [],
+      "closeDate": "2026-08-21",
+      "openDate": "2026-08-24",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMZN",
+        "periodStart": 1786737600000,
+        "openAt": 1786973400000,
+        "lastClose": 262.6499938964844,
+        "fairValue": 265.9799999999999,
+        "external": 265.98,
+        "actualOpen": 265.44000244140625
+      },
+      "alerts": [],
+      "closeDate": "2026-08-14",
+      "openDate": "2026-08-17",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "MSFT",
+        "periodStart": 1790971200000,
+        "openAt": 1791207000000,
+        "lastClose": 517.530029296875,
+        "fairValue": 520.59,
+        "external": 520.59,
+        "actualOpen": 521.6199951171875
+      },
+      "alerts": [],
+      "closeDate": "2026-10-02",
+      "openDate": "2026-10-05",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "MSFT",
+        "periodStart": 1790366400000,
+        "openAt": 1790602200000,
+        "lastClose": 516.1699829101562,
+        "fairValue": 508.28999999999985,
+        "external": 508.29,
+        "actualOpen": 505.4700012207031
+      },
+      "alerts": [],
+      "closeDate": "2026-09-25",
+      "openDate": "2026-09-28",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "MSFT",
+        "periodStart": 1789761600000,
+        "openAt": 1789997400000,
+        "lastClose": 493.7799987792969,
+        "fairValue": 495.2999999999998,
+        "external": 495.3,
+        "actualOpen": 494.95001220703125
+      },
+      "alerts": [],
+      "closeDate": "2026-09-18",
+      "openDate": "2026-09-21",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "MSFT",
+        "periodStart": 1789156800000,
+        "openAt": 1789392600000,
+        "lastClose": 495.6300048828125,
+        "fairValue": 497.28000000000003,
+        "external": 497.28,
+        "actualOpen": 497.05999755859375
+      },
+      "alerts": [],
+      "closeDate": "2026-09-11",
+      "openDate": "2026-09-14",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "MSFT",
+        "periodStart": 1788552000000,
+        "openAt": 1788874200000,
+        "lastClose": 499.70001220703125,
+        "fairValue": 494.93000000000006,
+        "external": 494.93,
+        "actualOpen": 493.010009765625
+      },
+      "alerts": [],
+      "closeDate": "2026-09-04",
+      "openDate": "2026-09-08",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "MSFT",
+        "periodStart": 1787947200000,
+        "openAt": 1788183000000,
+        "lastClose": 513.530029296875,
+        "fairValue": 509.25000000000017,
+        "external": 509.25,
+        "actualOpen": 510.3800048828125
+      },
+      "alerts": [],
+      "closeDate": "2026-08-28",
+      "openDate": "2026-08-31",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "MSFT",
+        "periodStart": 1787342400000,
+        "openAt": 1787578200000,
+        "lastClose": 483.239990234375,
+        "fairValue": 483.2000000000001,
+        "external": 483.2,
+        "actualOpen": 483.2099914550781
+      },
+      "alerts": [],
+      "closeDate": "2026-08-21",
+      "openDate": "2026-08-24",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "MSFT",
+        "periodStart": 1786737600000,
+        "openAt": 1786973400000,
+        "lastClose": 495.3999938964844,
+        "fairValue": 491.69,
+        "external": 491.69,
+        "actualOpen": 490.1400146484375
+      },
+      "alerts": [],
+      "closeDate": "2026-08-14",
+      "openDate": "2026-08-17",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "PLTR",
+        "periodStart": 1790971200000,
+        "openAt": 1791207000000,
+        "lastClose": 188.75,
+        "fairValue": 189.13000000000005,
+        "external": 189.13,
+        "actualOpen": 189.4499969482422
+      },
+      "alerts": [],
+      "closeDate": "2026-10-02",
+      "openDate": "2026-10-05",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "PLTR",
+        "periodStart": 1790366400000,
+        "openAt": 1790602200000,
+        "lastClose": 189.6699981689453,
+        "fairValue": 186.34999999999994,
+        "external": 186.35,
+        "actualOpen": 186.2310028076172
+      },
+      "alerts": [],
+      "closeDate": "2026-09-25",
+      "openDate": "2026-09-28",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "PLTR",
+        "periodStart": 1789761600000,
+        "openAt": 1789997400000,
+        "lastClose": 177.63999938964844,
+        "fairValue": 178.71000000000006,
+        "external": 178.71,
+        "actualOpen": 178.72500610351562
+      },
+      "alerts": [],
+      "closeDate": "2026-09-18",
+      "openDate": "2026-09-21",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "PLTR",
+        "periodStart": 1789156800000,
+        "openAt": 1789392600000,
+        "lastClose": 167.22999572753906,
+        "fairValue": 168.68999999999994,
+        "external": 168.69,
+        "actualOpen": 169.69500732421875
+      },
+      "alerts": [],
+      "closeDate": "2026-09-11",
+      "openDate": "2026-09-14",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "PLTR",
+        "periodStart": 1788552000000,
+        "openAt": 1788874200000,
+        "lastClose": 174.3300018310547,
+        "fairValue": 173.46999999999997,
+        "external": 173.47,
+        "actualOpen": 173.60000610351562
+      },
+      "alerts": [],
+      "closeDate": "2026-09-04",
+      "openDate": "2026-09-08",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "PLTR",
+        "periodStart": 1787947200000,
+        "openAt": 1788183000000,
+        "lastClose": 186.2899932861328,
+        "fairValue": 183.61000000000004,
+        "external": 183.61,
+        "actualOpen": 184.4949951171875
+      },
+      "alerts": [],
+      "closeDate": "2026-08-28",
+      "openDate": "2026-08-31",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "PLTR",
+        "periodStart": 1787342400000,
+        "openAt": 1787578200000,
+        "lastClose": 179.94000244140625,
+        "fairValue": 177.87000000000006,
+        "external": 177.87,
+        "actualOpen": 177.38999938964844
+      },
+      "alerts": [],
+      "closeDate": "2026-08-21",
+      "openDate": "2026-08-24",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "PLTR",
+        "periodStart": 1786737600000,
+        "openAt": 1786973400000,
+        "lastClose": 174.0399932861328,
+        "fairValue": 173.43000000000004,
+        "external": 173.43,
+        "actualOpen": 174.05999755859375
+      },
+      "alerts": [],
+      "closeDate": "2026-08-14",
+      "openDate": "2026-08-17",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMD",
+        "periodStart": 1790971200000,
+        "openAt": 1791207000000,
+        "lastClose": 633.9099731445312,
+        "fairValue": 628.7199999999998,
+        "external": 628.72,
+        "actualOpen": 630.6099853515625
+      },
+      "alerts": [],
+      "closeDate": "2026-10-02",
+      "openDate": "2026-10-05",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMD",
+        "periodStart": 1790366400000,
+        "openAt": 1790602200000,
+        "lastClose": 630.6300048828125,
+        "fairValue": 623.5599999999997,
+        "external": 623.56,
+        "actualOpen": 624.9000244140625
+      },
+      "alerts": [],
+      "closeDate": "2026-09-25",
+      "openDate": "2026-09-28",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMD",
+        "periodStart": 1789761600000,
+        "openAt": 1789997400000,
+        "lastClose": 559.8200073242188,
+        "fairValue": 579.2799999999997,
+        "external": 579.28,
+        "actualOpen": 583.8800048828125
+      },
+      "alerts": [],
+      "closeDate": "2026-09-18",
+      "openDate": "2026-09-21",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMD",
+        "periodStart": 1789156800000,
+        "openAt": 1789392600000,
+        "lastClose": 516.1300048828125,
+        "fairValue": 486.1400000000002,
+        "external": 486.14,
+        "actualOpen": 486.2799987792969
+      },
+      "alerts": [],
+      "closeDate": "2026-09-11",
+      "openDate": "2026-09-14",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMD",
+        "periodStart": 1788552000000,
+        "openAt": 1788874200000,
+        "lastClose": 477.57000732421875,
+        "fairValue": 488.1899999999999,
+        "external": 488.19,
+        "actualOpen": 488.9200134277344
+      },
+      "alerts": [],
+      "closeDate": "2026-09-04",
+      "openDate": "2026-09-08",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMD",
+        "periodStart": 1787947200000,
+        "openAt": 1788183000000,
+        "lastClose": 465.5799865722656,
+        "fairValue": 465.01000000000005,
+        "external": 465.01,
+        "actualOpen": 466.2200012207031
+      },
+      "alerts": [],
+      "closeDate": "2026-08-28",
+      "openDate": "2026-08-31",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMD",
+        "periodStart": 1787342400000,
+        "openAt": 1787578200000,
+        "lastClose": 473.25,
+        "fairValue": 465.1300000000001,
+        "external": 465.13,
+        "actualOpen": 468.5400085449219
+      },
+      "alerts": [],
+      "closeDate": "2026-08-21",
+      "openDate": "2026-08-24",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "AMD",
+        "periodStart": 1786737600000,
+        "openAt": 1786973400000,
+        "lastClose": 514.3900146484375,
+        "fairValue": 513.0200000000001,
+        "external": 513.02,
+        "actualOpen": 514.1599731445312
+      },
+      "alerts": [],
+      "closeDate": "2026-08-14",
+      "openDate": "2026-08-17",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "NVDA",
+        "periodStart": 1790971200000,
+        "openAt": 1791207000000,
+        "lastClose": 233.9499969482422,
+        "fairValue": 235.5699999999999,
+        "external": 235.57,
+        "actualOpen": 236.08999633789062
+      },
+      "alerts": [],
+      "closeDate": "2026-10-02",
+      "openDate": "2026-10-05",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "NVDA",
+        "periodStart": 1790366400000,
+        "openAt": 1790602200000,
+        "lastClose": 225.07000732421875,
+        "fairValue": 229.82000000000008,
+        "external": 229.82,
+        "actualOpen": 229.75
+      },
+      "alerts": [],
+      "closeDate": "2026-09-25",
+      "openDate": "2026-09-28",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "NVDA",
+        "periodStart": 1789761600000,
+        "openAt": 1789997400000,
+        "lastClose": 222.27000427246094,
+        "fairValue": 223.60999999999996,
+        "external": 223.61,
+        "actualOpen": 222.94000244140625
+      },
+      "alerts": [],
+      "closeDate": "2026-09-18",
+      "openDate": "2026-09-21",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "NVDA",
+        "periodStart": 1789156800000,
+        "openAt": 1789392600000,
+        "lastClose": 218.2899932861328,
+        "fairValue": 212.2199999999999,
+        "external": 212.22,
+        "actualOpen": 211.24000549316406
+      },
+      "alerts": [],
+      "closeDate": "2026-09-11",
+      "openDate": "2026-09-14",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "NVDA",
+        "periodStart": 1788552000000,
+        "openAt": 1788874200000,
+        "lastClose": 230.36000061035156,
+        "fairValue": 232.60999999999993,
+        "external": 232.61,
+        "actualOpen": 233.11000061035156
+      },
+      "alerts": [],
+      "closeDate": "2026-09-04",
+      "openDate": "2026-09-08",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "NVDA",
+        "periodStart": 1787947200000,
+        "openAt": 1788183000000,
+        "lastClose": 217.5500030517578,
+        "fairValue": 218.3400000000001,
+        "external": 218.34,
+        "actualOpen": 218.8699951171875
+      },
+      "alerts": [],
+      "closeDate": "2026-08-28",
+      "openDate": "2026-08-31",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "NVDA",
+        "periodStart": 1787342400000,
+        "openAt": 1787578200000,
+        "lastClose": 214.72000122070312,
+        "fairValue": 215.2700000000001,
+        "external": 215.27,
+        "actualOpen": 215.52999877929688
+      },
+      "alerts": [],
+      "closeDate": "2026-08-21",
+      "openDate": "2026-08-24",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "NVDA",
+        "periodStart": 1786737600000,
+        "openAt": 1786973400000,
+        "lastClose": 225.16000366210938,
+        "fairValue": 226.42,
+        "external": 226.42,
+        "actualOpen": 225.97999572753906
+      },
+      "alerts": [],
+      "closeDate": "2026-08-14",
+      "openDate": "2026-08-17",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "META",
+        "periodStart": 1790971200000,
+        "openAt": 1791207000000,
+        "lastClose": 728.0800170898438,
+        "fairValue": 726.32,
+        "external": 726.32,
+        "actualOpen": 727.7100219726562
+      },
+      "alerts": [],
+      "closeDate": "2026-10-02",
+      "openDate": "2026-10-05",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "META",
+        "periodStart": 1790366400000,
+        "openAt": 1790602200000,
+        "lastClose": 751.6599731445312,
+        "fairValue": 745.8499999999999,
+        "external": 745.85,
+        "actualOpen": 750.0399780273438
+      },
+      "alerts": [],
+      "closeDate": "2026-09-25",
+      "openDate": "2026-09-28",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "META",
+        "periodStart": 1789761600000,
+        "openAt": 1789997400000,
+        "lastClose": 665.75,
+        "fairValue": 681.7,
+        "external": 681.7,
+        "actualOpen": 680.2999877929688
+      },
+      "alerts": [],
+      "closeDate": "2026-09-18",
+      "openDate": "2026-09-21",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "META",
+        "periodStart": 1789156800000,
+        "openAt": 1789392600000,
+        "lastClose": 648.030029296875,
+        "fairValue": 652.8099999999997,
+        "external": 652.81,
+        "actualOpen": 657.8300170898438
+      },
+      "alerts": [],
+      "closeDate": "2026-09-11",
+      "openDate": "2026-09-14",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "META",
+        "periodStart": 1788552000000,
+        "openAt": 1788874200000,
+        "lastClose": 616.77001953125,
+        "fairValue": 614.92,
+        "external": 614.92,
+        "actualOpen": 616.2100219726562
+      },
+      "alerts": [],
+      "closeDate": "2026-09-04",
+      "openDate": "2026-09-08",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "META",
+        "periodStart": 1787947200000,
+        "openAt": 1788183000000,
+        "lastClose": 578.02001953125,
+        "fairValue": 579.3200000000003,
+        "external": 579.32,
+        "actualOpen": 577.6300048828125
+      },
+      "alerts": [],
+      "closeDate": "2026-08-28",
+      "openDate": "2026-08-31",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "META",
+        "periodStart": 1787342400000,
+        "openAt": 1787578200000,
+        "lastClose": 549.9000244140625,
+        "fairValue": 551.5099999999999,
+        "external": 551.51,
+        "actualOpen": 550.2000122070312
+      },
+      "alerts": [],
+      "closeDate": "2026-08-21",
+      "openDate": "2026-08-24",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "META",
+        "periodStart": 1786737600000,
+        "openAt": 1786973400000,
+        "lastClose": 589.8499755859375,
+        "fairValue": 588,
+        "external": 588,
+        "actualOpen": 589.75
+      },
+      "alerts": [],
+      "closeDate": "2026-08-14",
+      "openDate": "2026-08-17",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "COIN",
+        "periodStart": 1790971200000,
+        "openAt": 1791207000000,
+        "lastClose": 183,
+        "fairValue": 187.82,
+        "external": 187.82,
+        "actualOpen": 186.91000366210938
+      },
+      "alerts": [],
+      "closeDate": "2026-10-02",
+      "openDate": "2026-10-05",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "COIN",
+        "periodStart": 1790366400000,
+        "openAt": 1790602200000,
+        "lastClose": 195.11000061035156,
+        "fairValue": 194.47,
+        "external": 194.47,
+        "actualOpen": 196.08999633789062
+      },
+      "alerts": [],
+      "closeDate": "2026-09-25",
+      "openDate": "2026-09-28",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "COIN",
+        "periodStart": 1789761600000,
+        "openAt": 1789997400000,
+        "lastClose": 194.25,
+        "fairValue": 205.23000000000005,
+        "external": 205.23,
+        "actualOpen": 205.19000244140625
+      },
+      "alerts": [],
+      "closeDate": "2026-09-18",
+      "openDate": "2026-09-21",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "COIN",
+        "periodStart": 1789156800000,
+        "openAt": 1789392600000,
+        "lastClose": 175.25999450683594,
+        "fairValue": 177.96999999999997,
+        "external": 177.97,
+        "actualOpen": 180.80999755859375
+      },
+      "alerts": [],
+      "closeDate": "2026-09-11",
+      "openDate": "2026-09-14",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "COIN",
+        "periodStart": 1788552000000,
+        "openAt": 1788874200000,
+        "lastClose": 184.63999938964844,
+        "fairValue": 182.66999999999996,
+        "external": 182.67,
+        "actualOpen": 180.67999267578125
+      },
+      "alerts": [],
+      "closeDate": "2026-09-04",
+      "openDate": "2026-09-08",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "COIN",
+        "periodStart": 1787947200000,
+        "openAt": 1788183000000,
+        "lastClose": 178.63999938964844,
+        "fairValue": 179.13000000000002,
+        "external": 179.13,
+        "actualOpen": 178.50999450683594
+      },
+      "alerts": [],
+      "closeDate": "2026-08-28",
+      "openDate": "2026-08-31",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "COIN",
+        "periodStart": 1787342400000,
+        "openAt": 1787578200000,
+        "lastClose": 186.49000549316406,
+        "fairValue": 190.53999999999994,
+        "external": 190.54,
+        "actualOpen": 188.75
+      },
+      "alerts": [],
+      "closeDate": "2026-08-21",
+      "openDate": "2026-08-24",
+      "truth": "yahoo"
+    },
+    {
+      "forecast": {
+        "ticker": "COIN",
+        "periodStart": 1786737600000,
+        "openAt": 1786973400000,
+        "lastClose": 148.47000122070312,
+        "fairValue": 148.81,
+        "external": 148.81,
+        "actualOpen": 148.36000061035156
+      },
+      "alerts": [],
+      "closeDate": "2026-08-14",
+      "openDate": "2026-08-17",
+      "truth": "yahoo"
+    }
+  ]
 }
