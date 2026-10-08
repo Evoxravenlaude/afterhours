@@ -45,3 +45,14 @@ describe("backtest", () => {
     expect(new Set(keys).size).toBe(1);
   });
 });
+
+describe("sparse k-lines", () => {
+  it("flags a token that stopped trading while fair value moved, without letting it steer fair value", () => {
+    const quiet = { ...input, tokens: input.tokens.map((t) => t.issuer === "xstocks"
+      ? { ...t, candles: [{ t: close + 15 * 60_000, c: 200, v: 1 }] }   // one trade just after the close, then nothing
+      : t) };
+    const r = backtestPeriod(quiet);
+    expect(r.forecast.fairValue).toBeGreaterThan(204);                    // the stale $200 didn't drag fair value down
+    expect(r.alerts.some((a) => a.issuer === "xstocks" && a.side === "buy")).toBe(true);
+  });
+});

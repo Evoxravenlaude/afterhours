@@ -16,10 +16,12 @@ const ok = (data: unknown) => ({ code: "000000", message: null, data, success: t
 describe("issuer inference", () => {
   it("reads symbol conventions", () => {
     expect(inferIssuer("NVDAon")).toBe("ondo");
-    expect(inferIssuer("bNVDA")).toBe("bstocks");
+    expect(inferIssuer("NVDAB")).toBe("bstocks");
     expect(inferIssuer("TSLAx")).toBe("xstocks");
-    expect(inferIssuer("WEIRD")).toBe("unknown");
+    expect(inferIssuer("xOPAI")).toBe("unknown");
     expect(inferIssuer("anything", 1)).toBe("ondo");
+    expect(inferIssuer("MUB", 3)).toBe("bstocks");    // bStocks MU, not the muni-bond ETF
+    expect(inferIssuer("xSPCX", 4)).toBe("unknown");  // pre-IPO tokens stay out
   });
 });
 
@@ -27,7 +29,7 @@ describe("Binance RWA client", () => {
   const fetchImpl = replay({
     "rwa/stock/detail/list/ai": ok([
       { chainId: "56", contractAddress: "0xAbC0000000000000000000000000000000000001", symbol: "NVDAon", ticker: "nvda", type: 1, multiplier: "1.0021" },
-      { chainId: "56", contractAddress: "0xabc0000000000000000000000000000000000002", symbol: "bNVDA", ticker: "NVDA", type: 2, multiplier: "1" },
+      { chainId: "56", contractAddress: "0xabc0000000000000000000000000000000000002", symbol: "NVDAB", ticker: "NVDA", type: 3, multiplier: "1" },
       { chainId: "56", contractAddress: null, symbol: "broken" },
     ]),
     "rwa/dynamic/ai": ok({ symbol: "NVDAon", ticker: "NVDA", tokenInfo: { price: "190.42", sharesMultiplier: "1.0021", volume24h: "523000", totalHolders: 812 }, stockInfo: { price: "190.01", lastCashAmount: "0.01", dividendYield: "0.02" } }),

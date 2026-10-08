@@ -55,12 +55,19 @@ export interface AssetStatus { openState: string; marketStatus?: string; reasonC
 
 export interface Kline { openTime: number; open: number; high: number; low: number; close: number; closeTime: number }
 
-/** Best-effort issuer from the API's `type` and the token symbol conventions (NVDAon, bNVDA, NVDAx). */
+/**
+ * Issuer from the list API's `type` (observed live 2026-10-08: 1 = Ondo, 2 = xStocks, 3 = bStocks;
+ * 4 = pre-IPO tokens such as xOPAI, left unplaced), falling back to symbol conventions:
+ * NVDAon (Ondo), NVDAx (xStocks), NVDAB (bStocks).
+ */
 export function inferIssuer(symbol: string, type?: number): Issuer | "unknown" {
   if (type === 1) return "ondo";
-  if (/on$/i.test(symbol)) return "ondo";
-  if (/^b[A-Z]/.test(symbol)) return "bstocks";
-  if (/x$/.test(symbol)) return "xstocks";
+  if (type === 2) return "xstocks";
+  if (type === 3) return "bstocks";
+  if (type !== undefined) return "unknown";
+  if (/on$/.test(symbol)) return "ondo";
+  if (/^[A-Z][A-Z0-9.]*x$/.test(symbol)) return "xstocks";
+  if (/^[A-Z][A-Z0-9.]*B$/.test(symbol)) return "bstocks";
   return "unknown";
 }
 

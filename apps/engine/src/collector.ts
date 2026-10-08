@@ -67,7 +67,8 @@ export class LiveCollector {
       try {
         const [d, ms, st] = await Promise.all([
           this.bin.dynamic(t.contract),
-          this.readOnchain ? this.multCache.get(t.contract, () => this.bsc.state(t.contract)) : Promise.resolve(null),
+          // Only bStocks implement BEP-677 on BSC; Ondo and xStocks multipliers come from the API.
+          this.readOnchain && t.issuer === "bstocks" ? this.multCache.get(t.contract, () => this.bsc.state(t.contract)) : Promise.resolve(null),
           this.statusCache.get(t.contract, () => this.bin.assetStatus(t.contract).catch(() => null)),
         ]);
         if (d.stockPrice) snap.stockPrice = d.stockPrice;

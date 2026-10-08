@@ -31,14 +31,22 @@ function at(c: Candle[], t: number, maxAge: number): Candle | undefined {
   return best && t - best.t <= maxAge ? best : undefined;
 }
 
-function snapshot(p: PeriodInput, t: number, maxAge: number): { quotes: TokenQuote[]; external?: ExternalSignal } {
-  const quotes: TokenQuote[] = [];
+/**
+ * Binance k-lines skip intervals with no trades, so a quiet token's last candle can be hours old.
+ * `fresh` quotes (recent trades) shape fair value; `held` quotes carry the last traded price forward
+ * so a token left behind while fair value moves can still be flagged.
+ */
+function snapshot(p: PeriodInput, t: number, maxAge: number, holdMs: number): { fresh: TokenQuote[]; held: TokenQuote[]; external?: ExternalSignal } {
+  const fresh: TokenQuote[] = [], held: TokenQuote[] = [];
   for (const s of p.tokens) {
-    const k = at(s.candles, t, maxAge);
-    if (k) quotes.push({ issuer: s.issuer, symbol: s.symbol, ticker: p.ticker, contract: s.contract, tokenPrice: k.c, multiplier: s.multiplier, basis: s.basis, liquidityUsd: k.v, observedAt: k.t });
+    const k = at(s.candles, t, holdMs);
+    if (!k) continue;
+    const q = { issuer: s.issuer, symbol: s.symbol, ticker: p.ticker, contract: s.contract, tokenPrice: k.c, multiplier: s.multiplier, basis: s.basis, liquidityUsd: k.v, observedAt: k.t };
+    held.push(q);
+    if (t - k.t <= maxAge) fresh.push(q);
   }
   const e = p.external ? at(p.external, t, maxAge) : undefined;
-  return { quotes, external: e ? { source: "hyperliquid", ticker: p.ticker, price: e.c, observedAt: e.t } : undefined };
+  return { fresh, held, external: e ? { source: "hyperliquid", ticker: p.ticker, price: e.c, observedAt: e.t } : undefined };
 }
 
 /**
@@ -46,10 +54,11 @@ function snapshot(p: PeriodInput, t: number, maxAge: number): { quotes: TokenQuo
  * Forecast: our fair value `leadMs` before the open, plus the token-only variant, scored later against the official open.
  * Alerts: every `stepMs` through the closed period, deduplicated per token and side; each is valued at the open.
  */
-export function backtestPeriod(p: PeriodInput, opts: { stepMs?: number; leadMs?: number; maxCandleAgeMs?: number; model?: ModelConfig; costs?: CostModel } = {}): PeriodResult {
-  const { stepMs = 15 * 60_000, leadMs = 5 * 60_000, maxCandleAgeMs = 30 * 60_000, model = DEFAULT_MODEL, costs = DEFAULT_COSTS } = opts;
+export function backtestPeriod(p: PeriodInput, opts: { stepMs?: number; leadMs?: number; maxCandleAgeMs?: number; holdMs?: number; model?: ModelConfig; costs?: CostModel } = {}): PeriodResult {
+  const { stepMs = 15 * 60_000, leadMs = 5 * 60_000, maxCandleAgeMs = 2 * 3_600_000, holdMs = 24 * 3_600_000, model = DEFAULT_MODEL, costs = DEFAULT_COSTS } = opts;
   const tf = p.openAt - leadMs;
-  const s = snapshot(p, tf, maxCandleAgeMs);
+  const snap0 = snapshot(p, tf, maxCandleAgeMs, holdMs);
+  const s = { quotes: snap0.fresh, external: snap0.external };
   const hours = (tf - p.lastCloseAt) / 3_600_000;
   const base = { ticker: p.ticker, now: tf, lastClose: p.lastClose, lastCloseAt: p.lastCloseAt, hoursClosed: hours };
   const fv = fairValue({ ...base, quotes: s.quotes, external: s.external }, { ...model, maxSignalAgeMs: maxCandleAgeMs });
@@ -59,11 +68,11 @@ export function backtestPeriod(p: PeriodInput, opts: { stepMs?: number; leadMs?:
   const inBandAt = new Map<string, number>();
   const alerts: BacktestAlert[] = [];
   for (let t = p.lastCloseAt + stepMs; t < p.openAt; t += stepMs) {
-    const snap = snapshot(p, t, maxCandleAgeMs);
-    if (!snap.quotes.length) continue;
-    const f = fairValue({ ticker: p.ticker, now: t, lastClose: p.lastClose, lastCloseAt: p.lastCloseAt, hoursClosed: (t - p.lastCloseAt) / 3_600_000, quotes: snap.quotes, external: snap.external }, { ...model, maxSignalAgeMs: maxCandleAgeMs });
-    const out = findDislocations(f, snap.quotes, costs);
-    for (const q of snap.quotes) if (!out.some((d) => d.contract === q.contract)) inBandAt.set(q.contract, t);
+    const snap = snapshot(p, t, maxCandleAgeMs, holdMs);
+    if (!snap.held.length || (!snap.fresh.length && !snap.external)) continue;
+    const f = fairValue({ ticker: p.ticker, now: t, lastClose: p.lastClose, lastCloseAt: p.lastCloseAt, hoursClosed: (t - p.lastCloseAt) / 3_600_000, quotes: snap.fresh, external: snap.external }, { ...model, maxSignalAgeMs: maxCandleAgeMs });
+    const out = findDislocations(f, snap.held, costs);
+    for (const q of snap.held) if (!out.some((d) => d.contract === q.contract)) inBandAt.set(q.contract, t);
     for (const d of out) {
       const key = `${d.contract}:${d.side}`;
       if (!shouldRealert(seen.get(key), d, inBandAt.get(d.contract) ?? 0)) continue;

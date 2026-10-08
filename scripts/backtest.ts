@@ -52,7 +52,9 @@ async function main() {
   const skipped: string[] = [];
 
   for (const ticker of tickers) {
-    let truth; try { truth = await dailyBars(ticker); } catch (e) { skipped.push(ticker); console.log(`skip ${ticker}: ${String(e).slice(0, 160)}`); continue; }
+    let truth: { bars: { date: string; open: number; close: number }[]; source: string };
+    try { truth = await dailyBars(ticker); }
+    catch (e) { console.log(`  ${ticker}: no official bars (${String(e).slice(0, 100)}); using the Hyperliquid oracle proxy`); truth = { bars: [], source: "hl-proxy" }; }
     const bars = new Map(truth.bars.map((b) => [b.date, b]));
     const intraday = await intradayBars(ticker).catch(() => []);
     const its = bscTokens.filter((t) => t.ticker === ticker);
@@ -61,9 +63,16 @@ async function main() {
     await Promise.all(its.map(async (t) => mult.set(t.contract, (await bin.dynamic(t.contract).catch(() => null))?.sharesMultiplier ?? t.multiplier ?? 1)));
 
     for (const { closeDate, openDate } of periods) {
-      const c = bars.get(closeDate), o = bars.get(openDate);
-      if (!c || !o) continue;
       const fri = sessionFor(closeDate)!, lastCloseAt = fri.close, openAt = sessionFor(openDate)!.open;
+      let c: { date: string; open: number; close: number } | undefined = bars.get(closeDate), o = bars.get(openDate), source = truth.source;
+      if (!c || !o) {
+        // Proxy: the perp's oracle tracks the exchange while it's open, so the last 15m candle before the close
+        // and the first after the open sit within a few bps of the official prints. Labelled separately.
+        const hk = await hl.candles(perps.get(ticker)!, "15m", lastCloseAt - 30 * 60_000, openAt + 30 * 60_000).catch(() => []);
+        const pc = hk.find((x) => x.t === lastCloseAt - 15 * 60_000), po = hk.find((x) => x.t === openAt);
+        if (!pc || !po) { skipped.push(`${ticker} ${closeDate}`); continue; }
+        c = { date: closeDate, open: pc.o, close: pc.c }; o = { date: openDate, open: po.o, close: po.c }; source = "hl-proxy";
+      }
       const truthAt = new Map(intraday.filter((b) => b.t >= fri.open && b.t < fri.close).map((b) => [b.t, b.c]));
       const series: TokenSeries[] = [];
       for (const t of its) {
@@ -77,8 +86,8 @@ async function main() {
       }
       const ext = (await hl.candles(perps.get(ticker)!, "15m", lastCloseAt - 3_600_000, openAt + 3_600_000).catch(() => [])).map((x) => ({ t: x.t + 15 * 60_000, c: x.c, v: x.v * x.c }));
       const r = backtestPeriod({ ticker, lastClose: c.close, lastCloseAt, openAt, actualOpen: o.open, tokens: series, external: ext });
-      results.push({ ...r, closeDate, openDate });
-      console.log(`${ticker} ${closeDate}→${openDate} [${truth.source}]: close ${c.close} open ${o.open} | ours ${r.forecast.fairValue.toFixed(2)} tokens ${r.forecast.tokenOnly?.toFixed(2) ?? "-"} perp ${r.forecast.external?.toFixed(2) ?? "-"} | bases ${series.map((s) => s.basis?.toFixed(4) ?? "-").join("/")} | ${r.alerts.length} alerts`);
+      results.push({ ...r, closeDate, openDate, truth: source } as any);
+      console.log(`${ticker} ${closeDate}→${openDate} [${source}]: close ${c.close} open ${o.open} | ours ${r.forecast.fairValue.toFixed(2)} tokens ${r.forecast.tokenOnly?.toFixed(2) ?? "-"} perp ${r.forecast.external?.toFixed(2) ?? "-"} | bases ${series.map((s) => s.basis?.toFixed(4) ?? "-").join("/")} | ${r.alerts.length} alerts`);
     }
   }
 
@@ -86,6 +95,8 @@ async function main() {
   for (const b of basisLog) issuerBasis.set(b.issuer, [...(issuerBasis.get(b.issuer) ?? []), b.basis]);
   const basisRows = [...issuerBasis].map(([i, xs]) => { const s = [...xs].sort((a, b) => a - b); return `| ${issuerLabel(i)} | ${xs.length} | ${((s[s.length >> 1] - 1) * 100).toFixed(2)}% | ${((s[0] - 1) * 100).toFixed(2)}% to ${((s[s.length - 1] - 1) * 100).toFixed(2)}% |`; }).join("\n");
   const s = score(results.map((r) => r.forecast));
+  const official = score(results.filter((r: any) => r.truth !== "hl-proxy").map((r) => r.forecast));
+  const proxy = score(results.filter((r: any) => r.truth === "hl-proxy").map((r) => r.forecast));
   const a = alertOutcomes(results.flatMap((r) => r.alerts));
   mkdirSync("apps/engine/replay", { recursive: true });
   writeFileSync("apps/engine/replay/backtest.json", JSON.stringify({ at: new Date().toISOString(), weekends: periods, results }, null, 2));
@@ -101,6 +112,8 @@ ${periods.length} weekends × ${tickers.length} tickers = ${s.n} forecasts score
 | Tokens only (no perp signal) | ${s.tokenOnlyMaeBps?.toFixed(1) ?? "n/a"} bps |
 | Error reduction vs naive | ${s.improvementPct.toFixed(1)}% |
 | Direction of gaps ≥ 0.5% called correctly | ${(s.directionHitRate * 100).toFixed(0)}% |
+| Scored against official prints / Hyperliquid oracle proxy | ${official.n} / ${proxy.n} |
+| Our error, official prints only | ${official.n ? official.maeBps.toFixed(1) + " bps vs " + official.naiveMaeBps.toFixed(1) + " naive" : "n/a"} |
 | Alerts raised | ${a.n} |
 | Alerts worth acting on at the open, after costs | ${(a.winRate * 100).toFixed(0)}% |
 | Average alert value at the open, after costs | ${(a.avgNetPct * 100).toFixed(2)}% |
@@ -113,7 +126,7 @@ How far each issuer's tokens normally sit from the real stock price (per share, 
 |---|---|---|---|
 ${basisRows || "| n/a | 0 | – | – |"}
 
-Approximation: multipliers are today's values for every past weekend.${skipped.length ? `\nSkipped (no official bars): ${skipped.join(", ")}.` : ""}
+Approximations: multipliers are today's values for every past weekend. Where official daily bars were unreachable, the Friday close and Monday open come from the Hyperliquid oracle's 15-minute candles (counted separately above); that proxy shares a source with the perp signal, so official-print rows are the stronger evidence.${skipped.length ? `\nSkipped (no official bars): ${skipped.join(", ")}.` : ""}
 `;
   writeFileSync("docs/SCORECARD.md", md);
   console.log("\n" + md);

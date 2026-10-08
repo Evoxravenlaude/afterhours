@@ -53,3 +53,19 @@ _Suggestion:_ publish the real response schema with examples for regular, overni
 
 **F9. Market status times look inverted.**
 The market status endpoint returned `nextOpenTime` 1791446460000 and `nextCloseTime` 1791446100000 (close six minutes before open) during the overnight session. Possibly the gap between overnight and pre-market sessions, but undocumented.
+
+### 2026-10-08: Reading the live fixtures
+
+**F10. bStocks are type 3 with a `B` suffix, and nothing says so.**
+NVDAB, TSLAB, AAPLB… 91 BSC tokens under `type=3`. A builder following the published symbol examples looks for a `b` prefix and finds no bStocks at all; we did. `MUB` (bStocks Micron) also collides with a well-known bond ETF ticker, so the `ticker` field, not the symbol, has to be the join key.
+_Suggestion:_ document the `type` enum (1 Ondo, 2 xStocks, 3 bStocks, 4 pre-IPO…) and add an `issuer` string to each row.
+
+**F11. `openState` is a JSON boolean in live responses, and there's an undocumented `offhours` block.**
+Market status returned `"openState": true`, `"marketStatus": "overnight"`, `"reasonCode": null`, plus `"offhours": { "openState": false, "nextOpenTime": …, "nextCloseTime": … }`. None of that shape is in the skill docs, which describe string states.
+
+**F12. K-lines omit intervals with no trades.**
+EEMon's 1h k-lines jump from Saturday 05:00 UTC to Monday 00:00 UTC. That is reasonable, but undocumented: an integrator who assumes one candle per interval will misalign series or treat a quiet token as fresh. We now separate "fresh" quotes (which shape fair value) from "held" last-traded prices (which can still be flagged).
+_Suggestion:_ state the gap behaviour, or add a `fill=previous` option.
+
+**F13. `stockInfo.price` is null for bStocks.**
+MUB returned `"price": null` in `stockInfo` while xStocks and Ondo returned numbers. Three issuers, three behaviours for the same field.
