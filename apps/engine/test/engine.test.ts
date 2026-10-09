@@ -92,7 +92,7 @@ describe("delivery", () => {
   });
   it("renders the morning card", () => {
     const d = { periodLabel: "Fri close → Mon open", alerts: [{ ...row, worthPct: 0.04, tradedPct: 0.033, taken: 1 }], score: { n: 4, maeBps: 22, naiveMaeBps: 140, improvementPct: 84, directionHitRate: 1 } };
-    expect(cardSvg(d)).toContain("+3.3%");
+    expect(cardSvg(d)).toContain("+2.8%");   // 3.3% traded minus 0.55% costs: the average, not the best
     const png = cardPng(d);
     expect(png.subarray(1, 4).toString()).toBe("PNG");
   });

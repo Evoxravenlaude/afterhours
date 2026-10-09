@@ -42,6 +42,9 @@ export class Store {
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(d.ticker, d.issuer, d.symbol, d.contract, d.side, d.sharePrice, d.fairValue, d.edgePct, d.netEdgePct, d.at, periodStart, suppressed ?? null);
     return Number(r.lastInsertRowid);
   }
+  hasSuppressed(contract: string, periodStart: number, reason: string): boolean {
+    return !!this.db.prepare("SELECT 1 FROM alerts WHERE contract = ? AND period_start = ? AND suppressed = ? LIMIT 1").get(contract, periodStart, reason);
+  }
   markTaken(id: number) { this.db.prepare("UPDATE alerts SET taken = 1 WHERE id = ?").run(id); }
   alertsForPeriod(periodStart: number): AlertRow[] {
     return (this.db.prepare("SELECT * FROM alerts WHERE period_start = ? ORDER BY at").all(periodStart) as any[]).map((r) => this.row(r)!);

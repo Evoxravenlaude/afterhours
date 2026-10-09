@@ -78,7 +78,8 @@ export class Engine {
       const judged = found.filter((d) => s.quotes.find((q) => q.contract === d.contract)?.basis !== undefined);
       res.suppressed += found.length - judged.length;
       const { alerts, suppressed } = applyGuards(judged, s.guards, now);
-      for (const d of suppressed) { this.store.insertAlert(d, lcAt, d.reason); res.suppressed++; }
+      // One silenced record per token and reason per night, not one per minute.
+      for (const d of suppressed) { res.suppressed++; if (!this.store.hasSuppressed(d.contract, lcAt, d.reason)) this.store.insertAlert(d, lcAt, d.reason); }
       for (const d of alerts) {
         if (!this.shouldAlert(d, now)) continue;
         const id = this.store.insertAlert(d, lcAt);
