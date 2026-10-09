@@ -42,6 +42,10 @@ export class Store {
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(d.ticker, d.issuer, d.symbol, d.contract, d.side, d.sharePrice, d.fairValue, d.edgePct, d.netEdgePct, d.at, periodStart, suppressed ?? null);
     return Number(r.lastInsertRowid);
   }
+  awaitingTraded(): AlertRow[] {
+    return (this.db.prepare("SELECT * FROM alerts WHERE suppressed IS NULL AND worth_pct IS NOT NULL AND traded_pct IS NULL ORDER BY at").all() as any[]).map((r) => this.row(r)!);
+  }
+  setTraded(id: number, tradedPct: number) { this.db.prepare("UPDATE alerts SET traded_pct = ? WHERE id = ?").run(tradedPct, id); }
   hasSuppressed(contract: string, periodStart: number, reason: string): boolean {
     return !!this.db.prepare("SELECT 1 FROM alerts WHERE contract = ? AND period_start = ? AND suppressed = ? LIMIT 1").get(contract, periodStart, reason);
   }

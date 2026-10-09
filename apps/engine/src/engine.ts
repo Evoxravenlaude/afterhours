@@ -19,6 +19,14 @@ export interface TickResult { fairValues: FairValue[]; alerts: AlertRow[]; suppr
  */
 /** How long a token must sit back inside the band before a new alert episode can start. */
 export const INBAND_DWELL_MS = 30 * 60_000;
+/**
+ * A token whose quoted price hasn't changed for this long is not trading, and its "dislocation" is just a stale
+ * price. First live night (Oct 8–9): all 61 alerts were xStocks, 52 of them had moved less than 0.1% by the open,
+ * and they lost 0.27% on average after costs, while scoring +1.0% against the stock's opening print.
+ */
+export const STALE_PRICE_MS = 3 * 3_600_000;
+/** How long after the open we wait for an alerted token to trade before valuing it at its unchanged price. */
+export const TRADED_WINDOW_MS = 6 * 3_600_000;
 
 export class Engine {
   constructor(private store: Store, private cfg: Config, private notify?: Notifier) {}
@@ -31,6 +39,7 @@ export class Engine {
     const res: TickResult = { fairValues: [], alerts: [], suppressed: 0, settled: [] };
 
     for (const [ticker, s] of snap.tickers) {
+      for (const q of s.quotes) this.trackPrice(q.contract, q.tokenPrice, now);
       // While the exchange is open: keep the latest spot so the close is captured when it shuts,
       // and learn each token's basis (its normal ratio to the real price) from paired observations.
       if (open) {
@@ -75,9 +84,12 @@ export class Engine {
       }
       // A token whose normal gap to the stock hasn't been learned yet (it needs a few minutes of open-market
       // quotes) can't be judged: AMD's bStocks token sits ~2.9% under the stock every day. Stay quiet until learned.
-      const judged = found.filter((d) => s.quotes.find((q) => q.contract === d.contract)?.basis !== undefined);
-      res.suppressed += found.length - judged.length;
-      const { alerts, suppressed } = applyGuards(judged, s.guards, now);
+      const learned = found.filter((d) => s.quotes.find((q) => q.contract === d.contract)?.basis !== undefined);
+      res.suppressed += found.length - learned.length;
+      const judged = learned.filter((d) => now - this.priceChangedAt(d.contract) <= STALE_PRICE_MS);
+      const stale = learned.filter((d) => !judged.includes(d)).map((d) => ({ ...d, reason: "price not updating for 3h+" }));
+      const guarded = applyGuards(judged, s.guards, now);
+      const alerts = guarded.alerts, suppressed = [...guarded.suppressed, ...stale];
       // One silenced record per token and reason per night, not one per minute.
       for (const d of suppressed) { res.suppressed++; if (!this.store.hasSuppressed(d.contract, lcAt, d.reason)) this.store.insertAlert(d, lcAt, d.reason); }
       for (const d of alerts) {
@@ -90,7 +102,7 @@ export class Engine {
     }
 
     // After the open: read the opening print and settle forecasts and alerts for that period.
-    if (open) res.settled = await this.settle(snap);
+    if (open) { res.settled = await this.settle(snap); await this.settleTraded(snap); }
     return res;
   }
 
@@ -104,6 +116,14 @@ export class Engine {
     const b = estimateBasis(xs.map((r) => ({ tokenShare: r, truth: 1 })));
     if (b) this.store.set(`basis:${contract}`, String(b));
   }
+
+  /** Remember when each token's quoted price last changed; a new token counts as unchanged until it moves. */
+  private trackPrice(contract: string, price: number, now: number) {
+    const prev = this.store.get(`px:${contract}`);
+    if (prev === undefined) { this.store.set(`px:${contract}`, String(price)); this.store.set(`pxat:${contract}`, "0"); return; }
+    if (Number(prev) !== price) { this.store.set(`px:${contract}`, String(price)); this.store.set(`pxat:${contract}`, String(now)); }
+  }
+  private priceChangedAt(contract: string): number { return Number(this.store.get(`pxat:${contract}`)) || 0; }
 
   private shouldAlert(d: Dislocation, now: number): boolean {
     return shouldRealert(this.store.lastAlertFor(d.contract, d.side), { at: now, netEdgePct: d.netEdgePct }, Number(this.store.get(`inband:${d.contract}`) ?? 0));
@@ -119,18 +139,42 @@ export class Engine {
       this.store.settleForecast(f.ticker, f.openAt, s.oraclePx);
       for (const a of this.store.alertsForPeriod(f.periodStart).filter((a) => a.ticker === f.ticker && !a.suppressed && a.worthPct == null)) {
         const worth = a.side === "buy" ? s.oraclePx / a.sharePrice - 1 : a.sharePrice / s.oraclePx - 1;
-        // What the alert actually paid: the same token's per-share price now, on the same basis it was alerted on.
-        const q = s.quotes.find((x) => x.contract === a.contract);
-        const b = Number(this.store.get(`basis:${a.contract}`)) || 1;
-        const now = q ? q.tokenPrice / q.multiplier / b : undefined;
-        const traded = now === undefined ? undefined : a.side === "buy" ? now / a.sharePrice - 1 : a.sharePrice / now - 1;
-        this.store.settleAlert(a.id, s.oraclePx, worth, traded);
+        this.store.settleAlert(a.id, s.oraclePx, worth);   // the token side is valued once the token trades (settleTraded)
       }
-      periods.add(f.periodStart);
       settled.push(f.ticker);
+      periods.add(f.periodStart);
     }
-    for (const p of periods) await this.notify?.morning(p).catch(() => {});
+    // A quiet night has nothing to wait for: send its card now. Nights with alerts send once they're valued.
+    for (const p of periods) {
+      if (this.store.get(`card:${p}`) || this.store.alertsForPeriod(p).some((a) => !a.suppressed)) continue;
+      this.store.set(`card:${p}`, "1"); await this.notify?.morning(p).catch(() => {});
+    }
     return settled;
+  }
+
+  /**
+   * What each alert actually paid: the same token's per-share price at its first change after the open (it traded),
+   * or its price 6 hours after the open if it never moved. Matches the backtest's exit rule. The morning card goes
+   * out once every alert of the night is valued.
+   */
+  private async settleTraded(snap: Snapshot) {
+    const quotes = new Map([...snap.tickers.values()].flatMap((s) => s.quotes.map((q) => [q.contract, q] as const)));
+    const touched = new Set<number>();
+    for (const a of this.store.awaitingTraded()) {
+      const openAt = nextOpen(a.periodStart), q = quotes.get(a.contract);
+      const moved = this.priceChangedAt(a.contract) > openAt, late = snap.now >= openAt + TRADED_WINDOW_MS;
+      if (late) touched.add(a.periodStart);
+      if (!q) continue;
+      if (!moved && !late) continue;
+      const b = Number(this.store.get(`basis:${a.contract}`)) || 1;
+      const p = q.tokenPrice / q.multiplier / b;
+      this.store.setTraded(a.id, a.side === "buy" ? p / a.sharePrice - 1 : a.sharePrice / p - 1);
+      touched.add(a.periodStart);
+    }
+    for (const p of touched) {
+      const pending = this.store.alertsForPeriod(p).some((a) => !a.suppressed && a.tradedPct == null);
+      if ((!pending || snap.now >= nextOpen(p) + TRADED_WINDOW_MS) && !this.store.get(`card:${p}`)) { this.store.set(`card:${p}`, "1"); await this.notify?.morning(p).catch(() => {}); }
+    }
   }
 
   scorecard() { return score(this.store.forecasts()); }

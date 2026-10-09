@@ -24,7 +24,16 @@ Backtest on real data: the last 8 weekends (Aug 14 to Oct 5, 2026) for the 10 st
 | Average after costs | **+1.19%** |
 | Weekends with a positive average | **8 of 8** |
 
-Read with care: AMD supplies a third of the alerts (without it, 67% and +0.88%); COIN is the weak spot (43%); there is no historical pool depth, so fills at size aren't proven; the 0.5% minimum edge was chosen on this same data, so live weekends from 2026-10-09 are the real test.
+### Live, from 2026-10-08
+
+| Night | Forecast error at the open | Alerts | Paid after costs (token price) | Average after costs (token price) | vs official open (paper) |
+|---|---|---|---|---|---|
+| Wed → Thu open | 48 bps vs 83 naive | 0 (engine still learning) | – | – | – |
+| Thu → Fri open | 62 bps vs 119 naive | 61, all xStocks | 9 of 61 | **−0.27%** | +1.01% |
+
+The first live night lost money. All 61 alerts were xStocks tokens whose quoted price barely changed: 52 had moved less than 0.1% by the open. The backtest never saw this, because it only valued tokens that traded. Since 2026-10-09 Afterhours ignores any token whose price hasn't changed for three hours, and values each alert at the token's first price change after the open (or its price six hours after the open if it never moves), the same rule as the backtest. The forecast held up on both nights.
+
+Read the backtest with care: AMD supplies a third of the alerts (without it, 67% and +0.88%); COIN is the weak spot (43%); there is no historical pool depth, so fills at size aren't proven; the 0.5% minimum edge was chosen on this same data, so live weekends from 2026-10-09 are the real test.
 
 ## What it does
 
@@ -51,7 +60,7 @@ Read with care: AMD supplies a third of the alerts (without it, 67% and +0.88%);
 
 ```bash
 npm install
-npm test                         # 69 tests
+npm test                         # 72 tests
 npx tsx scripts/gate.ts          # live check of every data source; saves raw responses
 npx tsx scripts/backtest.ts 8    # score the model on the last 8 weekends -> docs/SCORECARD.md
 npm run engine                   # live mode on :8787

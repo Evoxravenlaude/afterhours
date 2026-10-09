@@ -46,7 +46,7 @@ describe("engine", () => {
     expect(mon.settled).toContain("NVDA");
     const f = store.forecasts()[0];
     expect(f.actualOpen).toBe(205.6);
-    const a = store.recentAlerts()[0];
+    const a = store.recentAlerts().find((x) => !x.suppressed)!;   // the stale-price silence on Monday morning is also recorded
     expect(a.worthPct!).toBeCloseTo(205.6 / 199 - 1, 6);   // paper: vs the official open
     expect(a.tradedPct!).toBeCloseTo(205 / 199 - 1, 6);    // real: the xStocks token itself after the open
     expect(notify.morning).toHaveBeenCalledTimes(1);
@@ -62,6 +62,35 @@ describe("engine", () => {
     const r = await e.tick(s);
     expect(r.alerts).toHaveLength(0);
     expect(r.suppressed).toBe(1);
+  });
+});
+
+describe("stale prices and settlement", () => {
+  it("doesn't alert on a token whose price hasn't changed for hours", async () => {
+    const store = new Store(":memory:");
+    const e = new Engine(store, config);
+    for (let i = 0; i < 10; i++) await e.tick(friday(T("2026-10-09T19:45:00Z") + i * 60_000));
+    await e.tick(snap(T("2026-10-09T20:30:00Z"), 199));             // xStocks drops to 199 after the close…
+    const r = await e.tick(snap(T("2026-10-10T02:00:00Z"), 199));   // …and is still 199, unchanged, 5.5h later
+    expect(r.alerts).toHaveLength(0);
+    expect(store.recentAlerts(50).some((a) => a.suppressed === "price not updating for 3h+")).toBe(true);
+  });
+  it("values an alert when the token next trades after the open, then sends the card", async () => {
+    const store = new Store(":memory:");
+    const notify = { alert: vi.fn(async () => {}), morning: vi.fn(async () => {}) };
+    const e = new Engine(store, { ...config, forecastLeadMin: 5, openReadDelayMin: 2 }, notify);
+    for (let i = 0; i < 10; i++) await e.tick(friday(T("2026-10-09T19:45:00Z") + i * 60_000));
+    await e.tick(snap(T("2026-10-12T13:20:00Z"), 199));              // Monday pre-open: fresh drop, alert
+    await e.tick(snap(T("2026-10-12T13:27:00Z"), 199.01));
+    await e.tick(snap(T("2026-10-12T13:33:00Z"), 199.01, 205.6));    // open: paper value set, token hasn't traded since
+    let a = store.recentAlerts().find((x) => !x.suppressed)!;
+    expect(a.worthPct).not.toBeNull();
+    expect(a.tradedPct).toBeNull();
+    expect(notify.morning).not.toHaveBeenCalled();
+    await e.tick(snap(T("2026-10-12T14:10:00Z"), 204, 205.8));       // token trades: valued at 204
+    a = store.recentAlerts().find((x) => !x.suppressed)!;
+    expect(a.tradedPct!).toBeGreaterThan(0.02);
+    expect(notify.morning).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -140,5 +169,17 @@ describe("episodes and health", () => {
     expect(text).toMatch(/Running\. Last update 60s ago\./);
     expect(text).toMatch(/Market closed\. Opens in/);
     expect(text).toMatch(/Pricing 63 stocks/);
+  });
+});
+
+describe("quiet nights", () => {
+  it("still sends the morning card when nothing alerted", async () => {
+    const store = new Store(":memory:");
+    const notify = { alert: vi.fn(async () => {}), morning: vi.fn(async () => {}) };
+    const e = new Engine(store, { ...config, forecastLeadMin: 5, openReadDelayMin: 2 }, notify);
+    for (let i = 0; i < 10; i++) await e.tick(friday(T("2026-10-09T19:45:00Z") + i * 60_000));
+    await e.tick(friday(T("2026-10-12T13:27:00Z")));
+    await e.tick(friday(T("2026-10-12T13:33:00Z")));
+    expect(notify.morning).toHaveBeenCalledTimes(1);
   });
 });

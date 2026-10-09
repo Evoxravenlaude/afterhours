@@ -45,6 +45,7 @@ The data is good enough to build on: the backtest beat the naive forecast of the
 - **Ondo trades 24/5.** Its k-lines stop Friday 8pm and resume Sunday 8pm New York time, so a weekend Ondo price is a frozen Friday-evening price (F12).
 - **Only bStocks implement BEP-677 on BSC.** `uiMultiplier()` reverts on Ondo and xStocks (F15), so for two of three issuers the multiplier exists only in API fields.
 - **xStocks barely trade on BSC.** Median 0 fifteen-minute candles per weekend in our sample.
+- **xStocks quotes on BSC can sit unchanged for hours.** On our first live night every one of 61 alerts was an xStocks token, and 52 of them had moved less than 0.1% by the next open. A price from the API looks live whether or not anyone is trading at it; nothing in the response says when it last changed (F17).
 - **The weekend gap is real and forecastable.** Hyperliquid's 24/7 stock perps forecast the Monday open with 29.6 bps mean error against 99.2 for "Friday's close" (80 opens). The tokens alone managed 31.4 bps once each token's normal gap to the stock was learned.
 
 ## 6. Redesign suggestions
@@ -60,8 +61,9 @@ The data is good enough to build on: the backtest beat the naive forecast of the
 2. A forward corporate-action calendar per token (ex-date, amount, expected multiplier change), not just a pause reason on the day.
 3. Each issuer's trading window in the asset status response.
 4. Quote at size for tokenized stocks through the Web3 API (pool depth), so a monitor can check whether an alert would fill without driving the CLI.
-5. Historical multipliers per token, so a backtest can use the multiplier that applied on the day.
-6. A streaming endpoint for RWA dynamic prices.
+5. A last-trade or last-update timestamp on every RWA dynamic price (F17).
+6. Historical multipliers per token, so a backtest can use the multiplier that applied on the day.
+7. A streaming endpoint for RWA dynamic prices.
 
 ## Appendix: friction log (dated, as it happened)
 
@@ -141,3 +143,10 @@ _Suggestion:_ say per issuer which multiplier source is authoritative.
 **F16. K-line `closeTime` follows a different convention per issuer.**
 Ondo candles close at `openTime + interval − 1` (…59.999), bStocks and xStocks candles at `openTime + interval` exactly. Matching token candles to official 15-minute bars by end time silently failed for every bStocks and xStocks token: our per-token basis was learned for 80 of 80 Ondo token-weekends and 0 of 160 others, and nothing errored. We now derive the close from `openTime` and the interval and ignore the field.
 _Suggestion:_ one convention for every series, stated in the docs.
+
+### 2026-10-09: First live night
+
+**F17. A dynamic price doesn't say how old it is.**
+Every one of 61 overnight alerts was an xStocks token that looked 1–3% under fair value. Valued against the stock's opening print they averaged +1.0% after costs; valued on the tokens themselves they averaged −0.27%, because 52 of the 61 had moved less than 0.1% by the open. The RWA dynamic response gives `tokenPrice` with no last-trade or last-update time, so a quote nobody is trading at looks the same as a live one. We now track when each token's price last changed and ignore tokens unchanged for three hours.
+_Suggestion:_ add `lastTradeTime` (or `priceUpdatedAt`) and 24h trade count to the dynamic response.
+
