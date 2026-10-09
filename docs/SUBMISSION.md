@@ -17,7 +17,7 @@ Tokenized US stocks on BNB Chain trade 24/7, but the exchange they track is open
 1. Open the deployed link: live fair values, alerts and the scorecard.
 2. Telegram: message [EDIT: @your_bot_username] `/start`, then `/now` and `/score`.
 3. Locally without any API access: `npm install && MODE=replay npm run engine`, then open http://localhost:8787 (replays the real-data backtest).
-4. Re-run the evidence: `npm test` (66 tests) and `TICKERS=AAPL,AMD,AMZN,COIN,GOOGL,META,MSFT,NVDA,PLTR,TSLA npx tsx scripts/backtest.ts 8`.
+4. Re-run the evidence: `npm test` (69 tests) and `TICKERS=AAPL,AMD,AMZN,COIN,GOOGL,META,MSFT,NVDA,PLTR,TSLA npx tsx scripts/backtest.ts 8`.
 
 **Binance Web3 API modules used:** tokenized-securities list (all BSC tokens and issuers), RWA dynamic (price, multiplier, volume), market status and asset market status (corporate-action pauses), token k-lines (backtest and basis learning); Agentic Wallet `baw market-order quote` commands from every alert and in the agent skill; BEP-677 `uiMultiplier` / `newUIMultiplier` on BSC.
 

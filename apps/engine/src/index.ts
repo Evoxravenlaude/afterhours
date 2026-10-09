@@ -25,6 +25,7 @@ if (config.mode === "replay") {
     if (running) return; running = true;
     try {
       const r = await engine.tick(await collector.snapshot());
+      store.set("lasttick", JSON.stringify({ at: Date.now(), fv: r.fairValues.length, alerts: r.alerts.length, silenced: r.suppressed }));
       console.log(`${new Date().toISOString()} fv=${r.fairValues.length} alerts=${r.alerts.length} silenced=${r.suppressed}${r.settled.length ? ` settled=${r.settled.join(",")}` : ""}`);
     } catch (e) { console.error("tick failed:", e); }
     finally { running = false; }

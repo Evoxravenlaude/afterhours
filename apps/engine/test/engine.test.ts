@@ -110,3 +110,35 @@ describe("live basis learning", () => {
     expect(r.alerts).toHaveLength(0);
   });
 });
+
+import { healthText } from "../src/telegram.js";
+describe("episodes and health", () => {
+  it("doesn't re-alert when a token hovers at the threshold without returning to the band", async () => {
+    const store = new Store(":memory:");
+    const e = new Engine(store, config);
+    for (let i = 0; i < 10; i++) await e.tick(friday(T("2026-10-09T19:45:00Z") + i * 60_000));
+    const first = await e.tick(snap(T("2026-10-10T12:00:00Z"), 199));
+    expect(first.alerts).toHaveLength(1);
+    await e.tick(snap(T("2026-10-10T12:05:00Z"), 204));   // still outside the band, below the alert threshold
+    const again = await e.tick(snap(T("2026-10-10T12:10:00Z"), 199));
+    expect(again.alerts).toHaveLength(0);
+  });
+  it("starts a new episode after 30 minutes back inside the band", async () => {
+    const store = new Store(":memory:");
+    const e = new Engine(store, config);
+    for (let i = 0; i < 10; i++) await e.tick(friday(T("2026-10-09T19:45:00Z") + i * 60_000));
+    await e.tick(snap(T("2026-10-10T12:00:00Z"), 199));
+    await e.tick(snap(T("2026-10-10T12:05:00Z"), 205.1));
+    await e.tick(snap(T("2026-10-10T12:40:00Z"), 205.1));
+    const again = await e.tick(snap(T("2026-10-10T12:45:00Z"), 199));
+    expect(again.alerts).toHaveLength(1);
+  });
+  it("answers /health in plain words", async () => {
+    const store = new Store(":memory:");
+    store.set("lasttick", JSON.stringify({ at: T("2026-10-10T12:00:00Z"), fv: 63, alerts: 0, silenced: 2 }));
+    const text = healthText(store, T("2026-10-10T12:01:00Z"));
+    expect(text).toMatch(/Running\. Last update 60s ago\./);
+    expect(text).toMatch(/Market closed\. Opens in/);
+    expect(text).toMatch(/Pricing 63 stocks/);
+  });
+});

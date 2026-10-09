@@ -85,4 +85,5 @@ export class Store {
 
   get(k: string): string | undefined { return (this.db.prepare("SELECT v FROM kv WHERE k = ?").get(k) as any)?.v; }
   set(k: string, v: string) { this.db.prepare("INSERT OR REPLACE INTO kv VALUES (?,?)").run(k, v); }
+  countPrefix(prefix: string): number { return Number((this.db.prepare("SELECT COUNT(*) AS n FROM kv WHERE k LIKE ? AND v <> ''").get(prefix + "%") as any)?.n ?? 0); }
 }

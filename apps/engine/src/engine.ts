@@ -17,6 +17,9 @@ export interface TickResult { fairValues: FairValue[]; alerts: AlertRow[]; suppr
  * One pass of the loop. Pure with respect to the outside world except through Store and Notifier,
  * so it can be driven by live snapshots or by tests.
  */
+/** How long a token must sit back inside the band before a new alert episode can start. */
+export const INBAND_DWELL_MS = 30 * 60_000;
+
 export class Engine {
   constructor(private store: Store, private cfg: Config, private notify?: Notifier) {}
 
@@ -58,7 +61,18 @@ export class Engine {
       }
 
       const found = findDislocations(fv, s.quotes, this.cfg.costs);
-      for (const q of s.quotes) if (!found.some((d) => d.contract === q.contract)) this.store.set(`inband:${q.contract}`, String(now));
+      // An episode ends only when the token is back inside the band and stays there for 30 minutes.
+      // Dipping just under the alert threshold doesn't count: on 2026-10-09 NVDAx hovered at 0.5% net edge
+      // and alerted twice in ten minutes.
+      for (const q of s.quotes) {
+        const p = sharePrice(q);
+        const sinceKey = `inbandSince:${q.contract}`;
+        if (p >= fv.low && p <= fv.high) {
+          const since = Number(this.store.get(sinceKey)) || now;
+          if (!Number(this.store.get(sinceKey))) this.store.set(sinceKey, String(now));
+          if (now - since >= INBAND_DWELL_MS) this.store.set(`inband:${q.contract}`, String(now));
+        } else if (this.store.get(sinceKey)) this.store.set(sinceKey, "");
+      }
       // A token whose normal gap to the stock hasn't been learned yet (it needs a few minutes of open-market
       // quotes) can't be judged: AMD's bStocks token sits ~2.9% under the stock every day. Stay quiet until learned.
       const judged = found.filter((d) => s.quotes.find((q) => q.contract === d.contract)?.basis !== undefined);

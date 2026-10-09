@@ -51,7 +51,7 @@ Read with care: AMD supplies a third of the alerts (without it, 67% and +0.88%);
 
 ```bash
 npm install
-npm test                         # 66 tests
+npm test                         # 69 tests
 npx tsx scripts/gate.ts          # live check of every data source; saves raw responses
 npx tsx scripts/backtest.ts 8    # score the model on the last 8 weekends -> docs/SCORECARD.md
 npm run engine                   # live mode on :8787
