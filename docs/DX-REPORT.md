@@ -1,10 +1,10 @@
 # Developer Experience Report: Binance Web3 API, Tokenized Securities, Agentic Wallet
 
-Afterhours prices tokenized US stocks on BNB Chain while the US exchange is closed, alerts when a token drifts from that price, and scores itself at every open. Building it meant pulling every BSC tokenized stock from the Web3 API, reading prices, multipliers, status and k-lines for three issuers, backtesting eight weekends, and running live on Railway from 2026-10-08. The dated log at the end is the raw record (F1–F16); the sections below organise it.
+Built while making Afterhours (BNB Hack: Tokenized Stocks Edition), Oct 6–10, 2026. Dated log of every problem at the end (F1–F17); the seven sections below sort them.
 
 ## Summary
 
-The data is good enough to build on: the backtest beat the naive forecast of the Monday open by 70% and its alerts paid on the token's own price in 8 of 8 weekends. Getting there cost about a day of discovering things the docs don't say. Five changes would have saved most of it:
+Backtest: 70% less error than the naive forecast of the Monday open, alerts paid on the token's own price in 8 of 8 weekends. Live: the forecast won both opens; the first night's alerts lost, because the API serves prices nobody is trading at (F17). About a day went on things the docs don't say. Five changes would have saved most of it:
 
 1. **Say which issuer each row is.** bStocks are `type=3` with a `B` suffix; nothing documents it, and the published symbol examples point the other way (F1, F10).
 2. **Publish the real response schemas.** `openState`, `reasonCode`, `marketStatus` and the `offhours` block all differ from the skill docs (F8, F11).
@@ -37,7 +37,7 @@ The data is good enough to build on: the backtest beat the naive forecast of the
 - The market-order flags live only in a nested reference file. GitHub's tree view is blocked to automated fetchers, so an agent can't list the reference files; we guessed the flags first and got them wrong (F6).
 - An agent that trusts the skill docs will misread live status responses (F8, F11) and, per two public hackathon repos, may treat a derived price as an independent one (F2). Skills are only as safe as the schema they describe.
 - `--fromTokenQty` sizes in token units; for a tokenized stock that means knowing the multiplier, which an agent can easily get wrong (F7).
-- [EDIT: add your own experience running `baw` here, or state plainly that Afterhours generates quote commands and you did not execute them against a funded wallet.]
+- Afterhours generates `baw market-order quote` commands (Telegram Quote button, agent skill). No swap was executed against a funded wallet during the build.
 
 ## 5. Tokenized-stock specifics
 

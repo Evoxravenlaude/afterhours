@@ -1,6 +1,6 @@
 # Submission form draft (BNB Hack: Tokenized Stocks Edition)
 
-Fields marked EDIT need your input. Submit by Saturday Oct 10; the form locks Sunday Oct 11, 12:00 UTC.
+Form locks Sunday Oct 11, 12:00 UTC. Only the video link is still blank.
 
 **Project name:** Afterhours
 
@@ -15,7 +15,7 @@ Tokenized US stocks on BNB Chain trade 24/7, but the exchange they track is open
 
 **How a judge can try it:**
 1. Open the deployed link: live fair values, alerts and the scorecard.
-2. Telegram: message [EDIT: @your_bot_username] `/start`, then `/now` and `/score`.
+2. Telegram: message @AfterhourszaBot `/start`, then `/now`, `/score` and `/health`.
 3. Locally without any API access: `npm install && MODE=replay npm run engine`, then open http://localhost:8787 (replays the real-data backtest).
 4. Re-run the evidence: `npm test` (72 tests) and `TICKERS=AAPL,AMD,AMZN,COIN,GOOGL,META,MSFT,NVDA,PLTR,TSLA npx tsx scripts/backtest.ts 8`.
 
@@ -23,10 +23,10 @@ Tokenized US stocks on BNB Chain trade 24/7, but the exchange they track is open
 
 **Developer Experience Report:** https://github.com/Evoxravenlaude/afterhours/blob/main/docs/DX-REPORT.md
 
-**Demo video:** [EDIT: link, under 4 minutes]
+**Demo video:** (add the link; under 4 minutes)
 
-**Special prizes:** Best Use of Agentic Wallet / Wallet Skills. Afterhours ships an agent skill (`skill/afterhours/SKILL.md`) that answers "is this token cheap right now?" from live fair value and hands off to `binance-agentic-wallet` with the exact quote command. [EDIT: only claim execution if you have run `baw` yourself.]
+**Special prizes:** Best Use of Agentic Wallet / Wallet Skills. Afterhours ships an agent skill (`skill/afterhours/SKILL.md`) that answers "is this token cheap right now?" from live fair value and hands off to `binance-agentic-wallet` with the exact quote command; every Telegram alert carries the same command behind its Quote button. Afterhours generates the commands; it does not sign or execute anything, and no swap was executed during the build.
 
-**Team:** Solo. [EDIT: name/handle, contact]
+**Team:** Solo. Rav3n: GitHub Evoxravenlaude, X @rv3nlaud3, Telegram @rav3nlaud.
 
-**Eligibility:** [EDIT: confirm you are not located in, resident of or a citizen of a restricted jurisdiction.]
+**Eligibility:** Confirmed. Based in Gabon; not located in, resident of or a citizen of any restricted jurisdiction, and not subject to sanctions.

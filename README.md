@@ -6,7 +6,7 @@ Tokenized US stocks on BNB Chain (bStocks, Ondo, xStocks) trade around the clock
 
 Afterhours prices each stock while the exchange is closed, tells you when a token drifts too far from that price, and scores every forecast against the official open, so you can see whether to trust it.
 
-Built for **BNB Hack: Tokenized Stocks Edition**. Live at **https://afterhours-production-f753.up.railway.app** and on Telegram ([EDIT: @your_bot_username]).
+Built for **BNB Hack: Tokenized Stocks Edition**. Live at **https://afterhours-production-f753.up.railway.app** and on Telegram (@AfterhourszaBot).
 
 ## Results
 
