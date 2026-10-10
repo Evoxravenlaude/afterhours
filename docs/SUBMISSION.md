@@ -15,7 +15,9 @@ The form's fields, in order, and what to paste:
 | Public repository URL | https://github.com/Evoxravenlaude/afterhours |
 | Demo video URL | your video link |
 | Deployed link, or instructions a judge can run | the "How a judge can try it" section below |
-| Developer Experience Report | tick "Yes": it is docs/DX-REPORT.md in the repo, linked from the README; the form has no upload |
+| Developer Experience Report | tick "Yes" only after submitting the separate report form below |
+
+The report is its own Google Form, 8 pages: https://docs.google.com/forms/d/e/1FAIpQLSfBkyWAYZ5JjzzUXRHlRgi7TjAIPUCkxPtV81eJgyBmGfrJiQ/viewform. "Mandatory and worth 25% of your total score. A submission without it is not scored. Perfunctory or AI-generated reports are not accepted." Submit it first, in your own words; docs/DX-REPORT.md is the fact sheet (F1–F17, with numbers) to write from, one page per section. Then tick the box on the project form.
 
 
 **Project name:** Afterhours
