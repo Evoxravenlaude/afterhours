@@ -1,6 +1,22 @@
 # Submission form draft (BNB Hack: Tokenized Stocks Edition)
 
-Form locks Sunday Oct 11, 12:00 UTC. Only the video link is still blank.
+Submit at the "Submit Project" Google Form linked from https://bnbchain.org/en/hackathons/tokenized-stocks (https://forms.gle/yToDUzaDMwWnq6R6A). Form locks Sunday Oct 11, 12:00 UTC.
+
+The form's fields, in order, and what to paste:
+
+| Field | Answer |
+|---|---|
+| Team or project name | Afterhours |
+| Contact email | your email |
+| Wallet address (ERC-20), or Binance UID | your BSC address |
+| Telegram handle | @rav3nlaud |
+| What did you build? | the Description below |
+| Which tracks | Main track; Best Use of Agentic Wallet / Wallet Skills |
+| Public repository URL | https://github.com/Evoxravenlaude/afterhours |
+| Demo video URL | your video link |
+| Deployed link, or instructions a judge can run | the "How a judge can try it" section below |
+| Developer Experience Report | tick "Yes": it is docs/DX-REPORT.md in the repo, linked from the README; the form has no upload |
+
 
 **Project name:** Afterhours
 
