@@ -13,7 +13,7 @@ The form's fields, in order, and what to paste:
 | What did you build? | the Description below |
 | Which tracks | Main track; Best Use of Agentic Wallet / Wallet Skills |
 | Public repository URL | https://github.com/Evoxravenlaude/afterhours |
-| Demo video URL | your video link |
+| Demo video URL | https://youtu.be/vUBzQnKL9XY |
 | Deployed link, or instructions a judge can run | the "How a judge can try it" section below |
 | Developer Experience Report | tick "Yes" only after submitting the separate report form below |
 
@@ -41,7 +41,7 @@ Tokenized US stocks on BNB Chain trade 24/7, but the exchange they track is open
 
 **Developer Experience Report:** https://github.com/Evoxravenlaude/afterhours/blob/main/docs/DX-REPORT.md
 
-**Demo video:** (add the link; under 4 minutes)
+**Demo video:** https://youtu.be/vUBzQnKL9XY
 
 **Special prizes:** Best Use of Agentic Wallet / Wallet Skills. Afterhours ships an agent skill (`skill/afterhours/SKILL.md`) that answers "is this token cheap right now?" from live fair value and hands off to `binance-agentic-wallet` with the exact quote command; every Telegram alert carries the same command behind its Quote button. Afterhours generates the commands; it does not sign or execute anything, and no swap was executed during the build.
 
